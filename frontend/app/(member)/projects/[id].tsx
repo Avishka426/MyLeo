@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Image,
-  TouchableOpacity, TextInput, Switch, Alert,
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  ScrollView, Switch, Alert,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import MapView, { Marker, MapPressEvent } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../../lib/api';
-import { COLORS } from '../../../lib/constants';
+import { COLORS, PROJECT_STATUSES } from '../../../lib/constants';
 import { Badge } from '../../../components/ui/Badge';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 
@@ -17,12 +17,8 @@ interface Project {
   category: string;
   description: string;
   status: string;
-  startDate?: string;
-  endDate?: string;
   outcomes?: string;
-  media: string[];
   isMapVisible: boolean;
-  club: { name: string; clubCode: string };
   location?: { coordinates: [number, number]; address?: string; placeName?: string };
 }
 
@@ -30,17 +26,17 @@ interface Coords { latitude: number; longitude: number }
 
 export default function MemberProjectDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
+  const [form, setForm] = useState({ title: '', description: '', status: 'upcoming', outcomes: '' });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  // Map location state
+  const [saving, setSaving] = useState(false);
   const [markerCoords, setMarkerCoords] = useState<Coords | null>(null);
   const [placeName, setPlaceName] = useState('');
   const [address, setAddress] = useState('');
   const [isMapVisible, setIsMapVisible] = useState(false);
   const [savingLocation, setSavingLocation] = useState(false);
-  const [locationExpanded, setLocationExpanded] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -48,149 +44,142 @@ export default function MemberProjectDetailScreen() {
         const res = await api.get(`/projects/${id}`);
         const p: Project = res.data.data;
         setProject(p);
+        setForm({ title: p.title, description: p.description, status: p.status, outcomes: p.outcomes || '' });
         setIsMapVisible(p.isMapVisible);
         setPlaceName(p.location?.placeName || '');
         setAddress(p.location?.address || '');
         if (p.location?.coordinates?.length === 2) {
           setMarkerCoords({ latitude: p.location.coordinates[1], longitude: p.location.coordinates[0] });
         }
-      } catch {
-        setError('Failed to load project.');
-      } finally {
-        setLoading(false);
-      }
+      } catch { setError('Failed to load project.'); }
+      finally { setLoading(false); }
     })();
   }, [id]);
 
+  const handleSave = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      await api.put(`/projects/${id}`, form);
+      Alert.alert('Saved', 'Project updated.');
+    } catch (e: any) {
+      setError(e.response?.data?.message || 'Failed to save.');
+    } finally { setSaving(false); }
+  };
+
   const handleSaveLocation = async () => {
-    if (!markerCoords) {
-      Alert.alert('Set Location', 'Tap on the map to place a pin first.');
-      return;
-    }
+    if (!markerCoords) { Alert.alert('Tap the map', 'Tap on the map to set the project location first.'); return; }
     setSavingLocation(true);
     try {
       await api.put(`/projects/${id}/location`, {
-        longitude: markerCoords.longitude,
-        latitude: markerCoords.latitude,
+        longitude: markerCoords.longitude, latitude: markerCoords.latitude,
         placeName, address, isMapVisible,
       });
-      Alert.alert('Saved', 'Project location updated on the map.');
-      setLocationExpanded(false);
+      Alert.alert('Location Saved', 'Project location updated on the map.');
     } catch (e: any) {
       Alert.alert('Error', e.response?.data?.message || 'Failed to save location.');
-    } finally {
-      setSavingLocation(false);
-    }
+    } finally { setSavingLocation(false); }
   };
 
   if (loading) return <LoadingSpinner />;
-  if (error || !project) return <Text style={styles.error}>{error || 'Project not found.'}</Text>;
-
-  const hasLocation = project.location?.coordinates?.length === 2;
+  if (error || !project) return <Text style={styles.error}>{error || 'Not found.'}</Text>;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {project.media?.[0] && (
-        <Image source={{ uri: project.media[0] }} style={styles.image} resizeMode="cover" />
-      )}
-
-      <Badge label={project.status} status={project.status} />
-      <Text style={styles.title}>{project.title}</Text>
-      <Text style={styles.club}>{project.club?.name} · {project.club?.clubCode}</Text>
-      <Text style={styles.category}>{project.category}</Text>
-
-      <View style={styles.dates}>
-        {project.startDate && <Text style={styles.dateText}>Start: {new Date(project.startDate).toLocaleDateString()}</Text>}
-        {project.endDate && <Text style={styles.dateText}>End: {new Date(project.endDate).toLocaleDateString()}</Text>}
+      <View style={styles.titleRow}>
+        <Text style={styles.heading}>{project.title}</Text>
+        <Badge label={project.status} status={project.status} />
       </View>
 
-      <Text style={styles.sectionLabel}>Description</Text>
-      <Text style={styles.body}>{project.description}</Text>
+      <Text style={styles.sectionTitle}>Edit Details</Text>
 
-      {project.outcomes ? (
-        <>
-          <Text style={styles.sectionLabel}>Outcomes</Text>
-          <Text style={styles.body}>{project.outcomes}</Text>
-        </>
-      ) : null}
+      <Text style={styles.label}>Title</Text>
+      <TextInput
+        style={styles.input} value={form.title}
+        onChangeText={(v) => setForm({ ...form, title: v })}
+        placeholderTextColor={COLORS.textMuted}
+      />
 
-      {/* ── Current map view ── */}
-      {hasLocation && !locationExpanded && (
-        <>
-          <Text style={styles.sectionLabel}>Location</Text>
-          {project.location!.placeName ? <Text style={styles.location}>{project.location!.placeName}</Text> : null}
-          {project.location!.address ? <Text style={styles.locationSub}>{project.location!.address}</Text> : null}
-          <MapView
-            style={styles.map}
-            region={{
-              latitude: project.location!.coordinates[1],
-              longitude: project.location!.coordinates[0],
-              latitudeDelta: 0.02, longitudeDelta: 0.02,
-            }}
-            scrollEnabled={false}
+      <Text style={styles.label}>Status</Text>
+      <View style={styles.statusRow}>
+        {PROJECT_STATUSES.map((s) => (
+          <TouchableOpacity
+            key={s}
+            style={[styles.statusBtn, form.status === s && styles.statusActive]}
+            onPress={() => setForm({ ...form, status: s })}
           >
-            <Marker coordinate={{ latitude: project.location!.coordinates[1], longitude: project.location!.coordinates[0] }} />
-          </MapView>
-        </>
-      )}
+            <Text style={[styles.statusText, form.status === s && styles.statusTextActive]}>{s}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
-      {/* ── Set / Edit Map Location ── */}
-      <TouchableOpacity style={styles.locationToggle} onPress={() => setLocationExpanded((v) => !v)} activeOpacity={0.7}>
-        <Ionicons name="location-outline" size={18} color={COLORS.primary} />
-        <Text style={styles.locationToggleText}>
-          {hasLocation ? 'Edit Map Location' : 'Set Map Location'}
-        </Text>
-        <Ionicons name={locationExpanded ? 'chevron-up' : 'chevron-down'} size={16} color={COLORS.textMuted} style={{ marginLeft: 'auto' }} />
+      <Text style={styles.label}>Description</Text>
+      <TextInput
+        style={[styles.input, styles.textarea]} value={form.description}
+        onChangeText={(v) => setForm({ ...form, description: v })}
+        multiline numberOfLines={4} textAlignVertical="top" placeholderTextColor={COLORS.textMuted}
+      />
+
+      <Text style={styles.label}>Outcomes</Text>
+      <TextInput
+        style={[styles.input, styles.textarea]} value={form.outcomes}
+        onChangeText={(v) => setForm({ ...form, outcomes: v })}
+        multiline numberOfLines={3} textAlignVertical="top" placeholderTextColor={COLORS.textMuted}
+      />
+
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+      <TouchableOpacity style={[styles.btn, saving && styles.disabled]} onPress={handleSave} disabled={saving}>
+        <Text style={styles.btnText}>{saving ? 'Saving…' : 'Save Project'}</Text>
       </TouchableOpacity>
 
-      {locationExpanded && (
-        <View style={styles.locationForm}>
-          <Text style={styles.hint}>Tap on the map to place the project pin. Drag to adjust.</Text>
-          <MapView
-            style={styles.editMap}
-            initialRegion={
-              markerCoords
-                ? { ...markerCoords, latitudeDelta: 0.05, longitudeDelta: 0.05 }
-                : { latitude: 7.8731, longitude: 80.7718, latitudeDelta: 4, longitudeDelta: 4 }
-            }
-            onPress={(e: MapPressEvent) => setMarkerCoords(e.nativeEvent.coordinate)}
-          >
-            {markerCoords && (
-              <Marker
-                coordinate={markerCoords}
-                draggable
-                onDragEnd={(e) => setMarkerCoords(e.nativeEvent.coordinate)}
-              />
-            )}
-          </MapView>
+      <View style={styles.divider} />
+      <Text style={styles.sectionTitle}>Map Location</Text>
+      <Text style={styles.hint}>Tap on the map to set the project location pin.</Text>
 
-          <Text style={styles.fieldLabel}>Place Name</Text>
-          <TextInput
-            style={styles.input} value={placeName} onChangeText={setPlaceName}
-            placeholder="e.g. Colombo City Hall" placeholderTextColor={COLORS.textMuted}
+      <MapView
+        style={styles.map}
+        initialRegion={
+          markerCoords
+            ? { ...markerCoords, latitudeDelta: 0.05, longitudeDelta: 0.05 }
+            : { latitude: 7.8731, longitude: 80.7718, latitudeDelta: 4, longitudeDelta: 4 }
+        }
+        onPress={(e: MapPressEvent) => setMarkerCoords(e.nativeEvent.coordinate)}
+      >
+        {markerCoords && (
+          <Marker
+            coordinate={markerCoords}
+            draggable
+            onDragEnd={(e) => setMarkerCoords(e.nativeEvent.coordinate)}
           />
+        )}
+      </MapView>
 
-          <Text style={styles.fieldLabel}>Address</Text>
-          <TextInput
-            style={styles.input} value={address} onChangeText={setAddress}
-            placeholder="Street address" placeholderTextColor={COLORS.textMuted}
-          />
+      <Text style={styles.label}>Place Name</Text>
+      <TextInput
+        style={styles.input} value={placeName} onChangeText={setPlaceName}
+        placeholder="e.g. Colombo City Hall" placeholderTextColor={COLORS.textMuted}
+      />
 
-          <View style={styles.switchRow}>
-            <Text style={styles.switchLabel}>Show on Public Map</Text>
-            <Switch value={isMapVisible} onValueChange={setIsMapVisible} trackColor={{ true: COLORS.primary }} />
-          </View>
+      <Text style={styles.label}>Address</Text>
+      <TextInput
+        style={styles.input} value={address} onChangeText={setAddress}
+        placeholder="Street address" placeholderTextColor={COLORS.textMuted}
+      />
 
-          <TouchableOpacity
-            style={[styles.saveBtn, savingLocation && { opacity: 0.6 }]}
-            onPress={handleSaveLocation}
-            disabled={savingLocation}
-          >
-            <Ionicons name="location-outline" size={18} color="#fff" />
-            <Text style={styles.saveBtnText}>{savingLocation ? 'Saving…' : 'Save Location'}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      <View style={styles.switchRow}>
+        <Text style={styles.switchLabel}>Show on Public Map</Text>
+        <Switch value={isMapVisible} onValueChange={setIsMapVisible} trackColor={{ true: COLORS.primary }} />
+      </View>
+
+      <TouchableOpacity
+        style={[styles.btn, styles.locationBtn, savingLocation && styles.disabled]}
+        onPress={handleSaveLocation}
+        disabled={savingLocation}
+      >
+        <Ionicons name="location-outline" size={18} color="#fff" />
+        <Text style={[styles.btnText, { marginLeft: 8 }]}>{savingLocation ? 'Saving…' : 'Save Location'}</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -198,41 +187,35 @@ export default function MemberProjectDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   content: { padding: 20, paddingBottom: 40 },
-  image: { width: '100%', height: 200, borderRadius: 12, marginBottom: 16 },
-  title: { fontSize: 22, fontWeight: '800', color: COLORS.text, marginTop: 10, marginBottom: 4 },
-  club: { fontSize: 13, color: COLORS.primary, fontWeight: '600', marginBottom: 4 },
-  category: { fontSize: 13, color: COLORS.textMuted, marginBottom: 8 },
-  dates: { flexDirection: 'row', gap: 16, marginBottom: 16 },
-  dateText: { fontSize: 12, color: COLORS.textMuted },
-  sectionLabel: { fontSize: 14, fontWeight: '700', color: COLORS.text, marginTop: 16, marginBottom: 6 },
-  body: { fontSize: 14, color: COLORS.textMuted, lineHeight: 22 },
-  location: { fontSize: 14, fontWeight: '600', color: COLORS.text },
-  locationSub: { fontSize: 12, color: COLORS.textMuted, marginBottom: 8 },
-  map: { width: '100%', height: 200, borderRadius: 12, marginTop: 8 },
-
-  locationToggle: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: COLORS.surface, borderRadius: 12, padding: 14,
-    marginTop: 20, borderWidth: 1, borderColor: COLORS.primary + '40',
-  },
-  locationToggleText: { fontSize: 14, fontWeight: '600', color: COLORS.primary },
-
-  locationForm: { marginTop: 12 },
-  hint: { fontSize: 13, color: COLORS.textMuted, marginBottom: 10 },
-  editMap: { width: '100%', height: 260, borderRadius: 12, marginBottom: 12 },
-
-  fieldLabel: { fontSize: 12, fontWeight: '600', color: COLORS.text, marginBottom: 6, marginTop: 10 },
+  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
+  heading: { fontSize: 20, fontWeight: '800', color: COLORS.text, flex: 1, marginRight: 8 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
+  label: { fontSize: 12, fontWeight: '600', color: COLORS.text, marginBottom: 6, marginTop: 12 },
   input: {
     backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border,
-    borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: COLORS.text,
+    borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: COLORS.text,
   },
-  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, marginBottom: 4 },
+  textarea: { height: 90, paddingTop: 12 },
+  statusRow: { flexDirection: 'row', gap: 8, marginBottom: 4 },
+  statusBtn: {
+    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
+    borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface,
+  },
+  statusActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  statusText: { fontSize: 13, color: COLORS.textMuted, fontWeight: '600' },
+  statusTextActive: { color: '#fff' },
+  btn: {
+    flexDirection: 'row', backgroundColor: COLORS.primary, borderRadius: 12,
+    padding: 16, alignItems: 'center', justifyContent: 'center', marginTop: 16,
+  },
+  locationBtn: { backgroundColor: '#1a6b3a' },
+  disabled: { opacity: 0.6 },
+  btnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  divider: { height: 1, backgroundColor: COLORS.border, marginVertical: 24 },
+  hint: { fontSize: 13, color: COLORS.textMuted, marginBottom: 12 },
+  map: { width: '100%', height: 260, borderRadius: 12, marginBottom: 4 },
+  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 },
   switchLabel: { fontSize: 14, fontWeight: '600', color: COLORS.text },
-  saveBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: '#1a6b3a', borderRadius: 12, padding: 14, marginTop: 16,
-  },
-  saveBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-
+  errorText: { color: COLORS.error, fontSize: 13, marginTop: 8 },
   error: { textAlign: 'center', color: COLORS.error, marginTop: 60 },
 });

@@ -14,5 +14,5 @@ export default function Index() {
     return <Redirect href="/(exco)/news" />;
   }
 
-  return <Redirect href="/(member)/dashboard" />;
+  return <Redirect href="/(member)/feed" />;
 }

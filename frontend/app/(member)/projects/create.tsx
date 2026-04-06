@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ScrollView, KeyboardAvoidingView, Platform, Alert,
+  ScrollView, KeyboardAvoidingView, Platform, Alert, Switch,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import MapView, { Marker, MapPressEvent } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../../lib/api';
 import { COLORS, PROJECT_STATUSES } from '../../../lib/constants';
 
 const CATEGORIES = ['Community Service', 'Environment', 'Health', 'Education', 'Disaster Relief', 'Youth Development', 'Other'];
+
+interface Coords { latitude: number; longitude: number }
 
 export default function MemberCreateProjectScreen() {
   const router = useRouter();
@@ -17,6 +20,12 @@ export default function MemberCreateProjectScreen() {
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showStatusPicker, setShowStatusPicker] = useState(false);
   const [error, setError] = useState('');
+
+  // Map state
+  const [markerCoords, setMarkerCoords] = useState<Coords | null>(null);
+  const [placeName, setPlaceName] = useState('');
+  const [address, setAddress] = useState('');
+  const [isMapVisible, setIsMapVisible] = useState(false);
 
   const handleCreate = async () => {
     if (!form.title || !form.description) {
@@ -27,8 +36,19 @@ export default function MemberCreateProjectScreen() {
     setError('');
     try {
       const res = await api.post('/projects', form);
-      Alert.alert('Created!', 'Project created. You can now set its map location.', [
-        { text: 'OK', onPress: () => router.replace({ pathname: '/(member)/projects/[id]', params: { id: res.data.data._id } }) },
+      const projectId = res.data.data._id;
+
+      // Save location if a pin was placed
+      if (markerCoords) {
+        await api.put(`/projects/${projectId}/location`, {
+          longitude: markerCoords.longitude,
+          latitude: markerCoords.latitude,
+          placeName, address, isMapVisible,
+        });
+      }
+
+      Alert.alert('Created!', 'Project created successfully.', [
+        { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (e: any) {
       setError(e.response?.data?.message || 'Failed to create project.');
@@ -58,7 +78,7 @@ export default function MemberCreateProjectScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.heading}>New Project</Text>
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -97,7 +117,58 @@ export default function MemberCreateProjectScreen() {
           textAlignVertical="top" placeholderTextColor={COLORS.textMuted}
         />
 
-        <TouchableOpacity style={[styles.btn, loading && styles.disabled]} onPress={handleCreate} disabled={loading}>
+        {/* ── Map Location ── */}
+        <View style={styles.divider} />
+        <Text style={styles.sectionTitle}>Map Location</Text>
+        <Text style={styles.hint}>
+          {markerCoords ? 'Pin placed. Drag to adjust.' : 'Tap the map to drop a location pin (optional).'}
+        </Text>
+
+        <MapView
+          style={styles.map}
+          initialRegion={{ latitude: 7.8731, longitude: 80.7718, latitudeDelta: 4, longitudeDelta: 4 }}
+          onPress={(e: MapPressEvent) => setMarkerCoords(e.nativeEvent.coordinate)}
+        >
+          {markerCoords && (
+            <Marker
+              coordinate={markerCoords}
+              draggable
+              onDragEnd={(e) => setMarkerCoords(e.nativeEvent.coordinate)}
+            />
+          )}
+        </MapView>
+
+        {markerCoords && (
+          <>
+            <Text style={styles.label}>Place Name</Text>
+            <TextInput
+              style={styles.input} value={placeName} onChangeText={setPlaceName}
+              placeholder="e.g. Colombo City Hall" placeholderTextColor={COLORS.textMuted}
+            />
+
+            <Text style={styles.label}>Address</Text>
+            <TextInput
+              style={styles.input} value={address} onChangeText={setAddress}
+              placeholder="Street address" placeholderTextColor={COLORS.textMuted}
+            />
+
+            <View style={styles.switchRow}>
+              <Text style={styles.switchLabel}>Show on Public Map</Text>
+              <Switch value={isMapVisible} onValueChange={setIsMapVisible} trackColor={{ true: COLORS.primary }} />
+            </View>
+
+            <TouchableOpacity style={styles.clearPin} onPress={() => setMarkerCoords(null)}>
+              <Ionicons name="close-circle-outline" size={16} color={COLORS.error} />
+              <Text style={styles.clearPinText}>Remove pin</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        <TouchableOpacity
+          style={[styles.btn, loading && styles.disabled]}
+          onPress={handleCreate}
+          disabled={loading}
+        >
           <Text style={styles.btnText}>{loading ? 'Creating…' : 'Create Project'}</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -126,6 +197,16 @@ const styles = StyleSheet.create({
   activeItem: { backgroundColor: '#E8F0FB' },
   dropdownText: { fontSize: 14, color: COLORS.text },
   activeText: { color: COLORS.primary, fontWeight: '700' },
+
+  divider: { height: 1, backgroundColor: COLORS.border, marginVertical: 24 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text, marginBottom: 8 },
+  hint: { fontSize: 13, color: COLORS.textMuted, marginBottom: 12 },
+  map: { width: '100%', height: 260, borderRadius: 12 },
+  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 },
+  switchLabel: { fontSize: 14, fontWeight: '600', color: COLORS.text },
+  clearPin: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 },
+  clearPinText: { fontSize: 13, color: COLORS.error },
+
   btn: { backgroundColor: COLORS.primary, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 28 },
   disabled: { opacity: 0.6 },
   btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },

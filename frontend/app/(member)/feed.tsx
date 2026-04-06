@@ -1,15 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  View, Text, FlatList, StyleSheet, TouchableOpacity,
-  RefreshControl, Image, Modal, Dimensions, StatusBar,
+  View, Text, FlatList, StyleSheet, Image,
+  TouchableOpacity, RefreshControl, Modal, Dimensions, StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import api from '../../../lib/api';
-import { COLORS } from '../../../lib/constants';
-import { Card } from '../../../components/ui/Card';
-import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
-import { useAuth } from '../../../context/AuthContext';
+import api from '../../lib/api';
+import { COLORS } from '../../lib/constants';
+import { Card } from '../../components/ui/Card';
+import { useAuth } from '../../context/AuthContext';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const GAP = 2;
@@ -19,9 +18,8 @@ interface NewsPost {
   title: string;
   content: string;
   images: string[];
-  isPublished: boolean;
-  publishedAt?: string;
-  createdAt: string;
+  publishedAt: string;
+  club: { name: string; clubCode: string; logo?: string };
 }
 
 // ── Image Viewer Modal ────────────────────────────────────────────────────────
@@ -32,18 +30,12 @@ function ImageViewer({
 
   return (
     <Modal visible animationType="fade" statusBarTranslucent>
-      <View style={viewer.overlay}>
+      <View style={viewerStyles.overlay}>
         <StatusBar hidden />
-
-        {/* Close */}
-        <TouchableOpacity style={viewer.closeBtn} onPress={onClose}>
+        <TouchableOpacity style={viewerStyles.closeBtn} onPress={onClose}>
           <Ionicons name="close" size={28} color="#fff" />
         </TouchableOpacity>
-
-        {/* Counter */}
-        <Text style={viewer.counter}>{current + 1} / {images.length}</Text>
-
-        {/* Swipeable images */}
+        <Text style={viewerStyles.counter}>{current + 1} / {images.length}</Text>
         <FlatList
           data={images}
           keyExtractor={(_, i) => String(i)}
@@ -76,7 +68,7 @@ function ImageGrid({ images, onPress }: { images: string[]; onPress: (i: number)
   const n = images.length;
   if (n === 0) return null;
 
-  const W = SCREEN_W - 32; // card width (16 padding each side)
+  const W = SCREEN_W - 32;
 
   if (n === 1) {
     return (
@@ -163,77 +155,67 @@ function ImageGrid({ images, onPress }: { images: string[]; onPress: (i: number)
 }
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
-export default function ExcoNewsScreen() {
+export default function FeedScreen() {
   const [posts, setPosts] = useState<NewsPost[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
   const [viewer, setViewer] = useState<{ images: string[]; index: number } | null>(null);
-  const { user } = useAuth();
   const router = useRouter();
+  const { user } = useAuth();
 
   const fetchPosts = useCallback(async () => {
     try {
+      setError('');
       const res = await api.get('/news');
       setPosts(res.data.data);
-    } catch { }
-    finally { setLoading(false); }
-  }, [user]);
+    } catch {
+      setError('Failed to load news. Pull to refresh.');
+    }
+  }, []);
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
-  const onRefresh = async () => { setRefreshing(true); await fetchPosts(); setRefreshing(false); };
 
-  const handleDelete = async (postId: string) => {
-    try {
-      await api.delete(`/news/${postId}`);
-      setPosts((prev) => prev.filter((p) => p._id !== postId));
-    } catch { }
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchPosts();
+    setRefreshing(false);
   };
 
-  if (loading) return <LoadingSpinner />;
+  const renderPost = ({ item }: { item: NewsPost }) => (
+    <Card>
+      <View style={styles.clubRow}>
+        <Ionicons name="shield-outline" size={14} color={COLORS.primary} />
+        <Text style={styles.clubName}>{item.club?.name}</Text>
+        <Text style={styles.date}>{new Date(item.publishedAt).toLocaleDateString()}</Text>
+      </View>
+      <Text style={styles.title}>{item.title}</Text>
+      <Text style={styles.content} numberOfLines={3}>{item.content}</Text>
+      {item.images?.length > 0 && (
+        <ImageGrid
+          images={item.images}
+          onPress={(i) => setViewer({ images: item.images, index: i })}
+        />
+      )}
+    </Card>
+  );
 
   return (
     <View style={styles.container}>
+      {!user && (
+        <TouchableOpacity style={styles.signInBanner} onPress={() => router.push('/(auth)/sign-in')}>
+          <Ionicons name="log-in-outline" size={16} color="#fff" />
+          <Text style={styles.signInText}>  Sign in for full access</Text>
+        </TouchableOpacity>
+      )}
+      {error ? <Text style={styles.error}>{error}</Text> : null}
       <FlatList
         data={posts}
         keyExtractor={(item) => item._id}
+        renderItem={renderPost}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
-        renderItem={({ item }) => (
-          <Card>
-            <View style={styles.row}>
-              <Text style={styles.title}>{item.title}</Text>
-              <View style={[styles.dot, { backgroundColor: item.isPublished ? COLORS.success : COLORS.textMuted }]} />
-            </View>
-            <Text style={styles.content} numberOfLines={3}>{item.content}</Text>
-
-            {item.images?.length > 0 && (
-              <ImageGrid
-                images={item.images}
-                onPress={(i) => setViewer({ images: item.images, index: i })}
-              />
-            )}
-
-            <View style={styles.metaRow}>
-              <Ionicons name="time-outline" size={12} color={COLORS.textMuted} />
-              <Text style={styles.date}>
-                {new Date(item.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
-                {'  '}
-                {new Date(item.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-              </Text>
-            </View>
-            <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDelete(item._id)}>
-              <Ionicons name="trash-outline" size={16} color={COLORS.error} />
-              <Text style={styles.deleteText}> Delete</Text>
-            </TouchableOpacity>
-          </Card>
-        )}
-        ListEmptyComponent={<Text style={styles.empty}>No posts yet.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>No posts yet. Check back soon!</Text>}
       />
-
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/(exco)/news/create')}>
-        <Ionicons name="add" size={28} color="#fff" />
-      </TouchableOpacity>
-
       {viewer && (
         <ImageViewer
           images={viewer.images}
@@ -247,24 +229,22 @@ export default function ExcoNewsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  list: { padding: 16, paddingBottom: 100 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  title: { fontSize: 15, fontWeight: '700', color: COLORS.text, flex: 1, marginRight: 8 },
-  dot: { width: 10, height: 10, borderRadius: 5 },
-  content: { fontSize: 13, color: COLORS.textMuted, marginBottom: 10 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  list: { padding: 16, paddingBottom: 32 },
+  clubRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  clubName: { fontSize: 12, color: COLORS.primary, fontWeight: '600', marginLeft: 4, flex: 1 },
   date: { fontSize: 11, color: COLORS.textMuted },
-  deleteBtn: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
-  deleteText: { color: COLORS.error, fontSize: 13 },
-  fab: {
-    position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28,
-    backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 8, elevation: 6,
+  title: { fontSize: 17, fontWeight: '700', color: COLORS.text, marginBottom: 6 },
+  content: { fontSize: 14, color: COLORS.textMuted, lineHeight: 20, marginBottom: 10 },
+  signInBanner: {
+    backgroundColor: COLORS.primary, flexDirection: 'row', justifyContent: 'center',
+    alignItems: 'center', padding: 10,
   },
-  empty: { textAlign: 'center', color: COLORS.textMuted, marginTop: 60 },
+  signInText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  error: { color: COLORS.error, textAlign: 'center', padding: 12 },
+  empty: { textAlign: 'center', color: COLORS.textMuted, marginTop: 60, fontSize: 15 },
 });
 
-const viewer = StyleSheet.create({
+const viewerStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: '#000' },
   closeBtn: {
     position: 'absolute', top: 50, right: 20, zIndex: 10,

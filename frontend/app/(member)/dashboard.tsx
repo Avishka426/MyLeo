@@ -13,9 +13,9 @@ export default function DashboardScreen() {
   const name = user?.memberProfile ? `${user.memberProfile.firstName} ${user.memberProfile.lastName}` : user?.email;
 
   const actions = [
-    { icon: 'folder-outline', label: 'View Projects', route: '/(member)/projects/index' },
-    { icon: 'newspaper-outline', label: 'News Feed', route: '/(public)/feed' },
-    { icon: 'map-outline', label: 'Project Map', route: '/(public)/map' },
+    { icon: 'folder-outline', label: 'View Projects', route: '/(member)/projects' },
+    { icon: 'newspaper-outline', label: 'News Feed', route: '/(member)/feed' },
+    { icon: 'map-outline', label: 'Project Map', route: '/(member)/map' },
   ] as const;
 
   return (

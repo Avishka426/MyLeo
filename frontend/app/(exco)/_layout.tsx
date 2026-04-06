@@ -29,6 +29,13 @@ export default function ExcoLayout() {
         }}
       />
       <Tabs.Screen
+        name="help"
+        options={{
+          title: 'Help',
+          tabBarIcon: ({ color, size }) => <Ionicons name="hand-left-outline" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="club-account"
         options={{
           title: 'Club',
