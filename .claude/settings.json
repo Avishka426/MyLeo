@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(grep -n \"_id as string\\\\|as string\\).toString\" src/controllers/*.ts)",
+      "Bash(timeout 8 node dist/app.js)",
+      "Bash(node dist/app.js)",
+      "Bash(kill %1)",
+      "Bash(wait)",
+      "Bash(mkdir -p context lib components/ui)",
+      "Bash(mkdir -p app/'\\\\\\(public\\\\\\)' app/'\\\\\\(auth\\\\\\)' app/'\\\\\\(member\\\\\\)'/projects app/'\\\\\\(exco\\\\\\)'/members app/'\\\\\\(exco\\\\\\)'/projects app/'\\\\\\(exco\\\\\\)'/news)",
+      "Bash(npx expo:*)",
+      "Bash(npx ts-node:*)"
+    ],
+    "additionalDirectories": [
+      "/Users/avishka/.claude/projects/-Users-avishka-Documents-MyLeo"
+    ]
+  }
+}

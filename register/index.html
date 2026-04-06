@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leo Moment – Register Member</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #F5F7FA;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .wrapper { width: 100%; max-width: 520px; }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo-icon {
+      width: 64px; height: 64px; border-radius: 16px;
+      background: #1B4F8A; display: inline-flex;
+      align-items: center; justify-content: center;
+      margin-bottom: 12px;
+    }
+    .logo-icon svg { width: 34px; height: 34px; fill: #fff; }
+    .logo h1 { font-size: 22px; font-weight: 800; color: #1A1A2E; }
+    .logo p  { font-size: 13px; color: #6B7280; margin-top: 4px; }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px 32px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+    }
+
+    .card h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1A1A2E;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card h2 .step {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: #1B4F8A; color: #fff;
+      font-size: 12px; font-weight: 800;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #1A1A2E;
+      margin-bottom: 5px;
+      margin-top: 14px;
+    }
+    label:first-of-type { margin-top: 0; }
+
+    input, select {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 9px;
+      font-size: 14px;
+      color: #1A1A2E;
+      background: #F9FAFB;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus, select:focus { border-color: #1B4F8A; background: #fff; }
+
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    button:active { transform: scale(0.98); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .btn-primary { background: #1B4F8A; color: #fff; }
+    .btn-success { background: #1a6b3a; color: #fff; }
+
+    .alert {
+      border-radius: 9px;
+      padding: 12px 14px;
+      font-size: 13px;
+      margin-top: 14px;
+      display: none;
+    }
+    .alert.show { display: block; }
+    .alert-error   { background: #FEE2E2; color: #B91C1C; }
+    .alert-success { background: #D1FAE5; color: #065F46; }
+    .alert-info    { background: #DBEAFE; color: #1E40AF; }
+
+    .token-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      background: #F3F4F6;
+      color: #6B7280;
+      margin-top: 14px;
+    }
+    .token-status.signed-in { background: #D1FAE5; color: #065F46; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+    #step2-card { opacity: 0.45; pointer-events: none; transition: opacity 0.3s; }
+    #step2-card.unlocked { opacity: 1; pointer-events: all; }
+
+    .api-url-row { display: flex; gap: 10px; align-items: flex-end; }
+    .api-url-row input { flex: 1; }
+    .api-url-row button {
+      width: auto; margin: 0; padding: 11px 18px;
+      font-size: 13px; border-radius: 9px; white-space: nowrap;
+    }
+
+    .result-box {
+      background: #F0FDF4;
+      border: 1.5px solid #86EFAC;
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 16px;
+      display: none;
+    }
+    .result-box.show { display: block; }
+    .result-box h3 { font-size: 14px; font-weight: 700; color: #065F46; margin-bottom: 10px; }
+    .result-box .field { font-size: 13px; color: #1A1A2E; margin-bottom: 4px; }
+    .result-box .field span { font-weight: 600; }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: #9CA3AF;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V5L12 1z"/></svg>
+    </div>
+    <h1>Leo Moment</h1>
+    <p>Internal Member Registration Tool</p>
+  </div>
+
+  <!-- Step 1: Sign In -->
+  <div class="card" id="step1-card">
+    <h2><span class="step">1</span> Admin / EXCO Sign In</h2>
+
+    <div class="api-url-row">
+      <div style="flex:1">
+        <label for="apiUrl">API URL</label>
+        <input type="text" id="apiUrl" value="http://localhost:3000/api" placeholder="http://localhost:3000/api" />
+      </div>
+    </div>
+
+    <label for="adminEmail">Email</label>
+    <input type="email" id="adminEmail" placeholder="admin@example.com" />
+
+    <label for="adminPassword">Password</label>
+    <input type="password" id="adminPassword" placeholder="Your password" />
+
+    <button class="btn-primary" id="signInBtn" onclick="doSignIn()">Sign In</button>
+
+    <div class="alert alert-error" id="signInError"></div>
+
+    <div class="token-status" id="tokenStatus">
+      <span class="dot"></span>
+      <span id="tokenStatusText">Not signed in</span>
+    </div>
+  </div>
+
+  <!-- Step 2: Register Member -->
+  <div class="card" id="step2-card">
+    <h2><span class="step">2</span> Register New Member</h2>
+
+    <div class="row2">
+      <div>
+        <label for="firstName">First Name *</label>
+        <input type="text" id="firstName" placeholder="First name" />
+      </div>
+      <div>
+        <label for="lastName">Last Name *</label>
+        <input type="text" id="lastName" placeholder="Last name" />
+      </div>
+    </div>
+
+    <label for="memberEmail">Email *</label>
+    <input type="email" id="memberEmail" placeholder="member@example.com" />
+
+    <label for="memberPhone">Phone</label>
+    <input type="tel" id="memberPhone" placeholder="+94 77 000 0000" />
+
+    <label for="position">Position *</label>
+    <select id="position">
+      <option value="Member">Member</option>
+      <option value="President">President</option>
+      <option value="Vice President">Vice President</option>
+      <option value="Secretary">Secretary</option>
+      <option value="Assistant Secretary">Assistant Secretary</option>
+      <option value="Treasurer">Treasurer</option>
+      <option value="Assistant Treasurer">Assistant Treasurer</option>
+    </select>
+
+    <label for="memberPassword">Temporary Password *</label>
+    <input type="text" id="memberPassword" placeholder="Min 8 characters" />
+    <small style="color:#6B7280;font-size:12px;margin-top:4px;display:block">Member will be prompted to change this on first login.</small>
+
+    <button class="btn-success" id="registerBtn" onclick="doRegister()">Register Member</button>
+
+    <div class="alert" id="registerAlert"></div>
+    <div class="result-box" id="resultBox">
+      <h3>✓ Member Registered Successfully</h3>
+      <div class="field">Name: <span id="r-name"></span></div>
+      <div class="field">Email: <span id="r-email"></span></div>
+      <div class="field">Position: <span id="r-position"></span></div>
+      <div class="field">Role assigned: <span id="r-role"></span></div>
+    </div>
+  </div>
+
+  <footer>Leo Moment · Internal tool · Do not share this page publicly</footer>
+</div>
+
+<script>
+  let authToken = null;
+
+  async function doSignIn() {
+    const btn = document.getElementById('signInBtn');
+    const errBox = document.getElementById('signInError');
+    const apiUrl = document.getElementById('apiUrl').value.trim().replace(/\/$/, '');
+    const email = document.getElementById('adminEmail').value.trim();
+    const password = document.getElementById('adminPassword').value;
+
+    errBox.className = 'alert';
+    errBox.textContent = '';
+
+    if (!email || !password) {
+      showAlert(errBox, 'alert-error', 'Please enter email and password.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Signing in…';
+
+    try {
+      const res = await fetch(`${apiUrl}/auth/signin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || 'Sign in failed');
+
+      const role = data.user?.role;
+      if (role !== 'club_exco' && role !== 'system_admin') {
+        throw new Error(`Access denied. Your role is '${role}'. Only Club EXCO or Admin can register members.`);
+      }
+
+      authToken = data.token;
+      window._apiUrl = apiUrl;
+
+      const status = document.getElementById('tokenStatus');
+      status.className = 'token-status signed-in';
+      document.getElementById('tokenStatusText').textContent =
+        `Signed in as ${data.user.email} (${role.replace('_', ' ')})`;
+
+      document.getElementById('step2-card').classList.add('unlocked');
+      btn.textContent = '✓ Signed In';
+
+    } catch (err) {
+      authToken = null;
+      showAlert(errBox, 'alert-error', err.message);
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+    }
+  }
+
+  async function doRegister() {
+    const btn = document.getElementById('registerBtn');
+    const alertBox = document.getElementById('registerAlert');
+    const resultBox = document.getElementById('resultBox');
+
+    alertBox.className = 'alert';
+    alertBox.textContent = '';
+    resultBox.className = 'result-box';
+
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName  = document.getElementById('lastName').value.trim();
+    const email     = document.getElementById('memberEmail').value.trim();
+    const phone     = document.getElementById('memberPhone').value.trim();
+    const position  = document.getElementById('position').value;
+    const password  = document.getElementById('memberPassword').value;
+
+    if (!firstName || !lastName || !email || !password) {
+      showAlert(alertBox, 'alert-error', 'First name, last name, email, and password are required.');
+      return;
+    }
+    if (password.length < 8) {
+      showAlert(alertBox, 'alert-error', 'Password must be at least 8 characters.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Registering…';
+
+    try {
+      const body = { firstName, lastName, email, position, password };
+      if (phone) body.phone = phone;
+
+      const res = await fetch(`${window._apiUrl}/members`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+        },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || 'Registration failed');
+
+      const excoPositions = ['President','Vice President','Secretary','Assistant Secretary','Treasurer','Assistant Treasurer'];
+      const role = excoPositions.includes(position) ? 'club_exco' : 'leo_member';
+
+      document.getElementById('r-name').textContent = `${firstName} ${lastName}`;
+      document.getElementById('r-email').textContent = email;
+      document.getElementById('r-position').textContent = position;
+      document.getElementById('r-role').textContent = role.replace('_', ' ');
+      resultBox.classList.add('show');
+
+      // Clear form
+      ['firstName','lastName','memberEmail','memberPhone','memberPassword'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('position').value = 'Member';
+
+    } catch (err) {
+      showAlert(alertBox, 'alert-error', err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Register Member';
+    }
+  }
+
+  function showAlert(el, cls, msg) {
+    el.className = `alert ${cls} show`;
+    el.textContent = msg;
+  }
+
+  // Allow Enter key on sign-in fields
+  ['adminEmail','adminPassword'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') doSignIn();
+    });
+  });
+</script>
+
+</body>
+</html>
