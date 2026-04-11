@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, Dimensions, TouchableOpacity } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../lib/api';
-import { COLORS, STATUS_COLORS } from '../../lib/constants';
+import { useTheme } from '../../context/ThemeContext';
+import { STATUS_COLORS } from '../../lib/theme';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 
 interface MapProject {
@@ -22,6 +23,7 @@ export default function MapScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selected, setSelected] = useState<MapProject | null>(null);
+  const { colors, radius } = useTheme();
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -39,98 +41,87 @@ export default function MapScreen() {
 
   if (loading) return <LoadingSpinner />;
 
+  if (error) return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: colors.background }}>
+      <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
+      <Text style={{ color: colors.error, marginTop: 12, fontSize: 15, textAlign: 'center' }}>{error}</Text>
+      <TouchableOpacity
+        style={{ marginTop: 20, backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 10, borderRadius: radius.md }}
+        onPress={fetchProjects}
+      >
+        <Text style={{ color: '#fff', fontWeight: '700' }}>Retry</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
-    <View style={styles.container}>
-      {error ? (
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={48} color={COLORS.error} />
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={fetchProjects}>
-            <Text style={styles.retryText}>Retry</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <>
-          <MapView
-            style={styles.map}
-            initialRegion={{ latitude: 7.8731, longitude: 80.7718, latitudeDelta: 4, longitudeDelta: 4 }}
-            onPress={() => setSelected(null)}
-          >
-            {projects.map((p) => (
-              <Marker
-                key={p.id}
-                coordinate={{ latitude: p.location.coordinates[1], longitude: p.location.coordinates[0] }}
-                pinColor={STATUS_COLORS[p.status] || COLORS.primary}
-                onPress={(e) => { e.stopPropagation(); setSelected(p); }}
-              />
-            ))}
-          </MapView>
+    <View style={{ flex: 1 }}>
+      <MapView
+        style={{ width, height }}
+        initialRegion={{ latitude: 7.8731, longitude: 80.7718, latitudeDelta: 4, longitudeDelta: 4 }}
+        onPress={() => setSelected(null)}
+      >
+        {projects.map((p) => (
+          <Marker
+            key={p.id}
+            coordinate={{ latitude: p.location.coordinates[1], longitude: p.location.coordinates[0] }}
+            pinColor={STATUS_COLORS[p.status] || colors.primary}
+            onPress={(e) => { e.stopPropagation(); setSelected(p); }}
+          />
+        ))}
+      </MapView>
 
-          <View style={styles.badge}>
-            <Ionicons name="location" size={14} color={COLORS.primary} />
-            <Text style={styles.badgeText}> {projects.length} project{projects.length !== 1 ? 's' : ''} on map</Text>
+      {/* Project count badge */}
+      <View style={{
+        position: 'absolute', top: 12, right: 12,
+        flexDirection: 'row', alignItems: 'center',
+        backgroundColor: colors.card, paddingHorizontal: 12, paddingVertical: 6,
+        borderRadius: radius.full, borderWidth: 1, borderColor: colors.border,
+        shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 3,
+      }}>
+        <Ionicons name="location" size={14} color={colors.primary} />
+        <Text style={{ fontSize: 12, color: colors.text, fontWeight: '600', marginLeft: 4 }}>
+          {projects.length} project{projects.length !== 1 ? 's' : ''}
+        </Text>
+      </View>
+
+      {/* Selected project card */}
+      {selected && (
+        <View style={{
+          position: 'absolute', bottom: 24, left: 16, right: 16,
+          backgroundColor: colors.card, borderRadius: radius.xl, padding: 16,
+          borderWidth: 1, borderColor: colors.border,
+          shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 12, elevation: 8,
+        }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text, flex: 1, marginRight: 8 }} numberOfLines={2}>
+              {selected.title}
+            </Text>
+            <TouchableOpacity onPress={() => setSelected(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Ionicons name="close" size={20} color={colors.textMuted} />
+            </TouchableOpacity>
           </View>
-
-          {selected && (
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle} numberOfLines={2}>{selected.title}</Text>
-                <TouchableOpacity onPress={() => setSelected(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                  <Ionicons name="close" size={20} color={COLORS.textMuted} />
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.cardClub}>{selected.club?.name}</Text>
-              <View style={styles.cardRow}>
-                <View style={styles.tag}>
-                  <Text style={styles.tagText}>{selected.category}</Text>
-                </View>
-                <View style={[styles.tag, { backgroundColor: (STATUS_COLORS[selected.status] || COLORS.primary) + '20' }]}>
-                  <Text style={[styles.tagText, { color: STATUS_COLORS[selected.status] || COLORS.primary }]}>
-                    {selected.status.toUpperCase()}
-                  </Text>
-                </View>
-              </View>
-              {selected.location.placeName ? (
-                <View style={styles.locationRow}>
-                  <Ionicons name="location-outline" size={13} color={COLORS.textMuted} />
-                  <Text style={styles.locationText}>{selected.location.placeName}</Text>
-                </View>
-              ) : null}
+          <Text style={{ fontSize: 12, color: colors.primary, fontWeight: '600', marginBottom: 10 }}>
+            {selected.club?.name}
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+            <View style={{ backgroundColor: colors.background, borderRadius: radius.sm, paddingHorizontal: 8, paddingVertical: 3 }}>
+              <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textMuted }}>{selected.category}</Text>
+            </View>
+            <View style={{ backgroundColor: (STATUS_COLORS[selected.status] || colors.primary) + '20', borderRadius: radius.sm, paddingHorizontal: 8, paddingVertical: 3 }}>
+              <Text style={{ fontSize: 11, fontWeight: '600', color: STATUS_COLORS[selected.status] || colors.primary }}>
+                {selected.status.toUpperCase()}
+              </Text>
+            </View>
+          </View>
+          {selected.location.placeName && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Ionicons name="location-outline" size={13} color={colors.textMuted} />
+              <Text style={{ fontSize: 12, color: colors.textMuted, flex: 1 }}>{selected.location.placeName}</Text>
             </View>
           )}
-        </>
+        </View>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  map: { width, height },
-  badge: {
-    position: 'absolute', top: 12, right: 12, flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#fff', paddingHorizontal: 12, paddingVertical: 6,
-    borderRadius: 20, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 3,
-  },
-  badgeText: { fontSize: 12, color: COLORS.text, fontWeight: '600' },
-
-  // Bottom card
-  card: {
-    position: 'absolute', bottom: 24, left: 16, right: 16,
-    backgroundColor: '#fff', borderRadius: 16, padding: 16,
-    shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 12, elevation: 8,
-  },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text, flex: 1, marginRight: 8 },
-  cardClub: { fontSize: 12, color: COLORS.primary, fontWeight: '600', marginBottom: 10 },
-  cardRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
-  tag: { backgroundColor: COLORS.background, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  tagText: { fontSize: 11, fontWeight: '600', color: COLORS.textMuted },
-  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  locationText: { fontSize: 12, color: COLORS.textMuted, flex: 1 },
-
-  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: COLORS.background },
-  errorText: { color: COLORS.error, marginTop: 12, fontSize: 15, textAlign: 'center' },
-  retryBtn: { marginTop: 20, backgroundColor: COLORS.primary, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 10 },
-  retryText: { color: '#fff', fontWeight: '700' },
-});

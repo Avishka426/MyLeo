@@ -1,17 +1,18 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../components/ui/AppHeader';
-import { COLORS } from '../../lib/constants';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function ExcoLayout() {
+  const { colors } = useTheme();
   return (
     <Tabs
       initialRouteName="news/index"
       screenOptions={{
         header: () => <AppHeader />,
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textMuted,
-        tabBarStyle: { backgroundColor: COLORS.surface, borderTopColor: COLORS.border },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
       }}
     >
       <Tabs.Screen
@@ -42,20 +43,13 @@ export default function ExcoLayout() {
           tabBarIcon: ({ color, size }) => <Ionicons name="shield-outline" size={size} color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="members/index"
-        options={{
-          title: 'Members',
-          href: null,
-          tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color} />,
-        }}
-      />
+      <Tabs.Screen name="members/index" options={{ href: null }} />
       <Tabs.Screen name="members/add" options={{ href: null }} />
       <Tabs.Screen name="members/[id]" options={{ href: null }} />
       <Tabs.Screen name="projects/create" options={{ href: null }} />
       <Tabs.Screen name="projects/[id]" options={{ href: null }} />
       <Tabs.Screen name="news/create" options={{ href: null }} />
-      <Tabs.Screen name="profile" options={{ href: null, title: 'Profile' }} />
+      <Tabs.Screen name="profile" options={{ href: null }} />
     </Tabs>
   );
 }

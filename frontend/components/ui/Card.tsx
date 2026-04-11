@@ -1,26 +1,30 @@
 import React, { ReactNode } from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
-import { COLORS } from '../../lib/constants';
+import { View, ViewStyle } from 'react-native';
+import { useTheme } from '../../context/ThemeContext';
 
 interface CardProps {
   children: ReactNode;
   style?: ViewStyle;
 }
 
-export const Card = ({ children, style }: CardProps) => (
-  <View style={[styles.card, style]}>{children}</View>
-);
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-});
+export const Card = ({ children, style }: CardProps) => {
+  const { colors, radius, shadow } = useTheme();
+  return (
+    <View
+      style={[
+        {
+          backgroundColor: colors.card,
+          borderRadius: radius.lg,
+          padding: 16,
+          marginBottom: 12,
+          borderWidth: 1,
+          borderColor: colors.border,
+          ...(shadow.md as object),
+        },
+        style,
+      ]}
+    >
+      {children}
+    </View>
+  );
+};

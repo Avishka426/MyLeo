@@ -1,17 +1,18 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../components/ui/AppHeader';
-import { COLORS } from '../../lib/constants';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function MemberLayout() {
+  const { colors } = useTheme();
   return (
     <Tabs
       initialRouteName="feed"
       screenOptions={{
         header: () => <AppHeader />,
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textMuted,
-        tabBarStyle: { backgroundColor: COLORS.surface, borderTopColor: COLORS.border },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
       }}
     >
       <Tabs.Screen

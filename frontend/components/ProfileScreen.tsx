@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  View, Text, ScrollView, TouchableOpacity,
   TextInput, Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
-import { COLORS } from '../lib/constants';
+import { useTheme } from '../context/ThemeContext';
 import api from '../lib/api';
 
 const ROLE_LABEL: Record<string, string> = {
@@ -16,6 +16,7 @@ const ROLE_LABEL: Record<string, string> = {
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
+  const { colors, radius } = useTheme();
   const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
   const [pwLoading, setPwLoading] = useState(false);
   const [pwExpanded, setPwExpanded] = useState(false);
@@ -29,24 +30,12 @@ export default function ProfileScreen() {
     : user?.email;
 
   const handleChangePassword = async () => {
-    if (!pwForm.current || !pwForm.newPw || !pwForm.confirm) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
-    if (pwForm.newPw !== pwForm.confirm) {
-      Alert.alert('Error', 'New passwords do not match');
-      return;
-    }
-    if (pwForm.newPw.length < 6) {
-      Alert.alert('Error', 'New password must be at least 6 characters');
-      return;
-    }
+    if (!pwForm.current || !pwForm.newPw || !pwForm.confirm) { Alert.alert('Error', 'Please fill in all fields'); return; }
+    if (pwForm.newPw !== pwForm.confirm) { Alert.alert('Error', 'New passwords do not match'); return; }
+    if (pwForm.newPw.length < 6) { Alert.alert('Error', 'New password must be at least 6 characters'); return; }
     setPwLoading(true);
     try {
-      await api.put('/auth/change-password', {
-        currentPassword: pwForm.current,
-        newPassword: pwForm.newPw,
-      });
+      await api.put('/auth/change-password', { currentPassword: pwForm.current, newPassword: pwForm.newPw });
       Alert.alert('Success', 'Password updated successfully');
       setPwForm({ current: '', newPw: '', confirm: '' });
       setPwExpanded(false);
@@ -57,151 +46,116 @@ export default function ProfileScreen() {
     }
   };
 
+  const inputStyle = {
+    borderWidth: 1, borderColor: colors.border, borderRadius: radius.md,
+    paddingHorizontal: 14, paddingVertical: 12,
+    fontSize: 14, color: colors.text, marginBottom: 10,
+    backgroundColor: colors.background,
+  };
+
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-
-        {/* ── Avatar & name ── */}
-        <View style={styles.heroCard}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: colors.background }}
+        contentContainerStyle={{ padding: 20, paddingBottom: 60 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Hero card */}
+        <View style={{
+          backgroundColor: colors.card, borderRadius: 20, padding: 28,
+          alignItems: 'center', marginBottom: 16,
+          borderWidth: 1, borderColor: colors.border,
+        }}>
+          <View style={{
+            width: 80, height: 80, borderRadius: 40,
+            backgroundColor: colors.primary,
+            justifyContent: 'center', alignItems: 'center', marginBottom: 14,
+          }}>
+            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 28 }}>{initials}</Text>
           </View>
-          <Text style={styles.name}>{displayName}</Text>
-          <Text style={styles.email}>{user?.email}</Text>
-          <View style={styles.rolePill}>
-            <Text style={styles.roleText}>{ROLE_LABEL[user?.role || ''] ?? user?.role}</Text>
+          <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text, marginBottom: 4 }}>{displayName}</Text>
+          <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 12 }}>{user?.email}</Text>
+          <View style={{ backgroundColor: colors.primary + '18', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 4, marginBottom: 10 }}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary }}>{ROLE_LABEL[user?.role || ''] ?? user?.role}</Text>
           </View>
           {user?.club && (
-            <View style={styles.clubRow}>
-              <Ionicons name="shield-checkmark-outline" size={14} color={COLORS.primary} />
-              <Text style={styles.clubText}>{user.club.name}</Text>
-              <Text style={styles.clubCode}>  ·  {user.club.clubCode}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+              <Ionicons name="shield-checkmark-outline" size={14} color={colors.primary} />
+              <Text style={{ fontSize: 13, color: colors.text, fontWeight: '600' }}>{user.club.name}</Text>
+              <Text style={{ fontSize: 12, color: colors.textMuted }}>  ·  {user.club.clubCode}</Text>
             </View>
           )}
           {user?.memberProfile?.position && (
-            <Text style={styles.position}>{user.memberProfile.position}</Text>
+            <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 2 }}>{user.memberProfile.position}</Text>
           )}
         </View>
 
-        {/* ── Change Password ── */}
-        <View style={styles.section}>
-          <TouchableOpacity style={styles.sectionHeader} onPress={() => setPwExpanded((v) => !v)} activeOpacity={0.7}>
-            <View style={styles.sectionLeft}>
-              <Ionicons name="lock-closed-outline" size={20} color={COLORS.primary} />
-              <Text style={styles.sectionTitle}>Change Password</Text>
+        {/* Change Password */}
+        <View style={{
+          backgroundColor: colors.card, borderRadius: radius.lg, marginBottom: 12,
+          borderWidth: 1, borderColor: colors.border, overflow: 'hidden',
+        }}>
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }}
+            onPress={() => setPwExpanded((v) => !v)} activeOpacity={0.7}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Ionicons name="lock-closed-outline" size={20} color={colors.primary} />
+              <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>Change Password</Text>
             </View>
-            <Ionicons
-              name={pwExpanded ? 'chevron-up' : 'chevron-down'}
-              size={18}
-              color={COLORS.textMuted}
-            />
+            <Ionicons name={pwExpanded ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
           </TouchableOpacity>
 
           {pwExpanded && (
-            <View style={styles.pwForm}>
+            <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
               <TextInput
-                style={styles.input}
+                style={inputStyle}
                 placeholder="Current password"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={colors.textMuted}
                 secureTextEntry
                 value={pwForm.current}
                 onChangeText={(v) => setPwForm((p) => ({ ...p, current: v }))}
               />
               <TextInput
-                style={styles.input}
+                style={inputStyle}
                 placeholder="New password"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={colors.textMuted}
                 secureTextEntry
                 value={pwForm.newPw}
                 onChangeText={(v) => setPwForm((p) => ({ ...p, newPw: v }))}
               />
               <TextInput
-                style={styles.input}
+                style={inputStyle}
                 placeholder="Confirm new password"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={colors.textMuted}
                 secureTextEntry
                 value={pwForm.confirm}
                 onChangeText={(v) => setPwForm((p) => ({ ...p, confirm: v }))}
               />
               <TouchableOpacity
-                style={[styles.saveBtn, pwLoading && { opacity: 0.6 }]}
+                style={{ backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 13, alignItems: 'center', marginTop: 4, opacity: pwLoading ? 0.6 : 1 }}
                 onPress={handleChangePassword}
                 disabled={pwLoading}
               >
-                <Text style={styles.saveBtnText}>{pwLoading ? 'Saving…' : 'Update Password'}</Text>
+                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>{pwLoading ? 'Saving…' : 'Update Password'}</Text>
               </TouchableOpacity>
             </View>
           )}
         </View>
 
-        {/* ── Sign out ── */}
-        <TouchableOpacity style={styles.signOutBtn} onPress={signOut}>
-          <Ionicons name="log-out-outline" size={20} color={COLORS.error} />
-          <Text style={styles.signOutText}>Sign Out</Text>
+        {/* Sign out */}
+        <TouchableOpacity
+          style={{
+            flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+            backgroundColor: colors.card, borderRadius: radius.lg, padding: 16,
+            borderWidth: 1, borderColor: colors.error + '40',
+          }}
+          onPress={signOut}
+        >
+          <Ionicons name="log-out-outline" size={20} color={colors.error} />
+          <Text style={{ color: colors.error, fontWeight: '700', fontSize: 15 }}>Sign Out</Text>
         </TouchableOpacity>
-
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 20, paddingBottom: 60 },
-
-  heroCard: {
-    backgroundColor: COLORS.surface, borderRadius: 20, padding: 24,
-    alignItems: 'center', marginBottom: 16,
-    shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, elevation: 3,
-  },
-  avatar: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center',
-    marginBottom: 14,
-  },
-  avatarText: { color: '#fff', fontWeight: '800', fontSize: 28 },
-  name: { fontSize: 20, fontWeight: '800', color: COLORS.text, marginBottom: 4 },
-  email: { fontSize: 13, color: COLORS.textMuted, marginBottom: 10 },
-  rolePill: {
-    backgroundColor: COLORS.primary + '18', borderRadius: 12,
-    paddingHorizontal: 12, paddingVertical: 4, marginBottom: 10,
-  },
-  roleText: { fontSize: 12, fontWeight: '700', color: COLORS.primary },
-  clubRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 },
-  clubText: { fontSize: 13, color: COLORS.text, fontWeight: '600' },
-  clubCode: { fontSize: 12, color: COLORS.textMuted },
-  position: { fontSize: 12, color: COLORS.textMuted, marginTop: 2 },
-
-  section: {
-    backgroundColor: COLORS.surface, borderRadius: 16, marginBottom: 12,
-    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
-    overflow: 'hidden',
-  },
-  sectionHeader: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    padding: 16,
-  },
-  sectionLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sectionTitle: { fontSize: 15, fontWeight: '600', color: COLORS.text },
-
-  pwForm: { paddingHorizontal: 16, paddingBottom: 16 },
-  input: {
-    borderWidth: 1, borderColor: COLORS.border, borderRadius: 10,
-    paddingHorizontal: 14, paddingVertical: 12,
-    fontSize: 14, color: COLORS.text, marginBottom: 10,
-    backgroundColor: COLORS.background,
-  },
-  saveBtn: {
-    backgroundColor: COLORS.primary, borderRadius: 10,
-    paddingVertical: 13, alignItems: 'center', marginTop: 4,
-  },
-  saveBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-
-  signOutBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: COLORS.surface, borderRadius: 14, padding: 16,
-    borderWidth: 1, borderColor: COLORS.error + '40',
-    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
-  },
-  signOutText: { color: COLORS.error, fontWeight: '700', fontSize: 15 },
-});

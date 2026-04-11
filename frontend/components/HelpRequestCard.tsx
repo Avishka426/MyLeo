@@ -1,14 +1,10 @@
 import React, { useState } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, Image,
-  Modal, FlatList, Dimensions, StatusBar, Alert,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, STATUS_COLORS } from '../lib/constants';
+import { useTheme } from '../context/ThemeContext';
+import { STATUS_COLORS } from '../lib/theme';
+import { ImageGridViewer } from './ImageGridViewer';
 import api from '../lib/api';
-
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
-const GAP = 2;
 
 export interface JoinRequest {
   club: { _id: string; name: string; clubCode: string };
@@ -30,179 +26,54 @@ export interface HelpRequestItem {
   createdAt: string;
 }
 
-// ── Image viewer ─────────────────────────────────────────────────────────────
-function ImageViewer({ images, startIndex, onClose }: { images: string[]; startIndex: number; onClose: () => void }) {
-  const [current, setCurrent] = useState(startIndex);
-  return (
-    <Modal visible animationType="fade" statusBarTranslucent>
-      <View style={{ flex: 1, backgroundColor: '#000' }}>
-        <StatusBar hidden />
-        <TouchableOpacity style={vs.closeBtn} onPress={onClose}>
-          <Ionicons name="close" size={28} color="#fff" />
-        </TouchableOpacity>
-        <Text style={vs.counter}>{current + 1} / {images.length}</Text>
-        <FlatList
-          data={images}
-          keyExtractor={(_, i) => String(i)}
-          horizontal pagingEnabled showsHorizontalScrollIndicator={false}
-          initialScrollIndex={startIndex}
-          getItemLayout={(_, index) => ({ length: SCREEN_W, offset: SCREEN_W * index, index })}
-          onMomentumScrollEnd={(e) => setCurrent(Math.round(e.nativeEvent.contentOffset.x / SCREEN_W))}
-          renderItem={({ item }) => (
-            <View style={{ width: SCREEN_W, height: SCREEN_H, justifyContent: 'center' }}>
-              <Image source={{ uri: item }} style={{ width: SCREEN_W, height: SCREEN_H }} resizeMode="contain" />
-            </View>
-          )}
-        />
-      </View>
-    </Modal>
-  );
-}
-
-// ── Image grid ────────────────────────────────────────────────────────────────
-function ImageGrid({ images, onPress }: { images: string[]; onPress: (i: number) => void }) {
-  const n = images.length;
-  if (!n) return null;
-  const W = SCREEN_W - 32;
-
-  if (n === 1) return (
-    <TouchableOpacity onPress={() => onPress(0)} activeOpacity={0.9}>
-      <Image source={{ uri: images[0] }} style={{ width: W, height: 200, borderRadius: 8, marginBottom: 10 }} resizeMode="cover" />
-    </TouchableOpacity>
-  );
-
-  if (n === 2) {
-    const half = (W - GAP) / 2;
-    return (
-      <View style={{ flexDirection: 'row', gap: GAP, marginBottom: 10 }}>
-        {images.map((uri, i) => (
-          <TouchableOpacity key={i} onPress={() => onPress(i)} activeOpacity={0.9}>
-            <Image source={{ uri }} style={{ width: half, height: 160, borderRadius: 8 }} resizeMode="cover" />
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  }
-
-  if (n === 3) {
-    const half = (W - GAP) / 2;
-    return (
-      <View style={{ flexDirection: 'row', gap: GAP, marginBottom: 10 }}>
-        <TouchableOpacity onPress={() => onPress(0)} activeOpacity={0.9}>
-          <Image source={{ uri: images[0] }} style={{ width: half, height: 200, borderRadius: 8 }} resizeMode="cover" />
-        </TouchableOpacity>
-        <View style={{ flex: 1, gap: GAP }}>
-          {[1, 2].map((i) => (
-            <TouchableOpacity key={i} onPress={() => onPress(i)} activeOpacity={0.9}>
-              <Image source={{ uri: images[i] }} style={{ width: half, height: (200 - GAP) / 2, borderRadius: 8 }} resizeMode="cover" />
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-    );
-  }
-
-  if (n === 4) {
-    const half = (W - GAP) / 2;
-    return (
-      <View style={{ gap: GAP, marginBottom: 10 }}>
-        <View style={{ flexDirection: 'row', gap: GAP }}>
-          {[0, 1].map((i) => (
-            <TouchableOpacity key={i} onPress={() => onPress(i)} activeOpacity={0.9}>
-              <Image source={{ uri: images[i] }} style={{ width: half, height: 140, borderRadius: 8 }} resizeMode="cover" />
-            </TouchableOpacity>
-          ))}
-        </View>
-        <View style={{ flexDirection: 'row', gap: GAP }}>
-          {[2, 3].map((i) => (
-            <TouchableOpacity key={i} onPress={() => onPress(i)} activeOpacity={0.9}>
-              <Image source={{ uri: images[i] }} style={{ width: half, height: 140, borderRadius: 8 }} resizeMode="cover" />
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-    );
-  }
-
-  const topW = (W - GAP) / 2;
-  const botW = (W - GAP * 2) / 3;
-  return (
-    <View style={{ gap: GAP, marginBottom: 10 }}>
-      <View style={{ flexDirection: 'row', gap: GAP }}>
-        {[0, 1].map((i) => (
-          <TouchableOpacity key={i} onPress={() => onPress(i)} activeOpacity={0.9}>
-            <Image source={{ uri: images[i] }} style={{ width: topW, height: 150, borderRadius: 8 }} resizeMode="cover" />
-          </TouchableOpacity>
-        ))}
-      </View>
-      <View style={{ flexDirection: 'row', gap: GAP }}>
-        {[2, 3, 4].map((i) => (
-          <TouchableOpacity key={i} onPress={() => onPress(i)} activeOpacity={0.9}>
-            <Image source={{ uri: images[i] }} style={{ width: botW, height: 100, borderRadius: 8 }} resizeMode="cover" />
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
-}
-
-// ── Status badge ─────────────────────────────────────────────────────────────
 const STATUS_LABEL: Record<string, string> = {
   pending: 'Needs Help',
   claimed: 'Being Handled',
-  joint:   'Joint Project',
+  joint: 'Joint Project',
   converted_to_project: 'Project Created',
 };
-const STATUS_COLOR: Record<string, string> = {
-  pending: COLORS.error,
-  claimed: '#E67E22',
-  joint:   COLORS.primary,
-  converted_to_project: COLORS.success,
-};
 
-// ── Main card ─────────────────────────────────────────────────────────────────
 interface Props {
   item: HelpRequestItem;
-  myClubId?: string;           // undefined = public/member view
+  myClubId?: string;
   isExco?: boolean;
   onUpdate?: (updated: HelpRequestItem) => void;
 }
 
 export default function HelpRequestCard({ item, myClubId, isExco, onUpdate }: Props) {
-  const [viewer, setViewer] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { colors, radius } = useTheme();
+  const [busy, setBusy] = useState(false);
 
   const joinRequests = item.joinRequests ?? [];
-  const images       = item.images ?? [];
-
-  const isClaimer   = !!myClubId && item.claimedBy?._id === myClubId;
-  const isClaimed   = item.status !== 'pending';
+  const images = item.images ?? [];
+  const isClaimer = !!myClubId && item.claimedBy?._id === myClubId;
   const isJointOpen = item.status === 'joint';
-  const myJoin      = joinRequests.find((jr) => jr.club?._id === myClubId);
+  const myJoin = joinRequests.find((jr) => jr.club?._id === myClubId);
+
+  const statusColor = STATUS_COLORS[item.status] ?? colors.textMuted;
 
   const doAction = async (fn: () => Promise<any>) => {
-    setLoading(true);
+    setBusy(true);
     try {
       const res = await fn();
       onUpdate?.(res.data.data);
     } catch (e: any) {
       Alert.alert('Error', e?.response?.data?.message || 'Action failed');
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   };
 
-  const handleClaim = () =>
-    doAction(() => api.put(`/help-requests/${item._id}/claim`));
+  const handleClaim = () => doAction(() => api.put(`/help-requests/${item._id}/claim`));
 
   const handleMarkJoint = () =>
-    Alert.alert('Mark as Joint Project?', 'Other clubs will be able to apply to join this project.', [
+    Alert.alert('Open for Joint Project?', 'Other clubs will be able to apply to join.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Mark Joint', onPress: () => doAction(() => api.put(`/help-requests/${item._id}/joint`)) },
+      { text: 'Confirm', onPress: () => doAction(() => api.put(`/help-requests/${item._id}/joint`)) },
     ]);
 
   const handleJoin = () =>
-    Alert.alert('Apply to Join?', 'Send a join request to the claiming club.', [
+    Alert.alert('Apply to Join?', 'Send a join request to the handling club.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Apply', onPress: () => doAction(() => api.post(`/help-requests/${item._id}/join`)) },
     ]);
@@ -210,100 +81,117 @@ export default function HelpRequestCard({ item, myClubId, isExco, onUpdate }: Pr
   const handleReview = (clubId: string, action: 'accept' | 'reject') =>
     doAction(() => api.put(`/help-requests/${item._id}/join/${clubId}`, { action }));
 
+  const ActionBtn = ({
+    label, icon, bg, onPress,
+  }: { label: string; icon: keyof typeof Ionicons.glyphMap; bg: string; onPress: () => void }) => (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={busy}
+      activeOpacity={0.8}
+      style={{
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+        borderRadius: radius.md, paddingVertical: 10, backgroundColor: bg,
+        opacity: busy ? 0.6 : 1,
+      }}
+    >
+      <Ionicons name={icon} size={15} color="#fff" />
+      <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{label}</Text>
+    </TouchableOpacity>
+  );
+
   return (
-    <View style={s.card}>
-      {/* Header */}
-      <View style={s.header}>
-        <View style={s.avatarCircle}>
-          <Ionicons name="person" size={18} color={COLORS.primary} />
+    <View style={{
+      backgroundColor: colors.card, borderRadius: radius.lg, padding: 16, marginBottom: 12,
+      borderWidth: 1, borderColor: colors.border,
+    }}>
+      {/* Header row */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+        <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primaryLight, justifyContent: 'center', alignItems: 'center' }}>
+          <Ionicons name="person" size={18} color={colors.primary} />
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={s.name}>{item.guestName}</Text>
-          <Text style={s.time}>{new Date(item.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text }}>{item.guestName}</Text>
+          <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 1 }}>
+            {new Date(item.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </Text>
         </View>
-        <View style={[s.badge, { backgroundColor: STATUS_COLOR[item.status] + '20' }]}>
-          <Text style={[s.badgeText, { color: STATUS_COLOR[item.status] }]}>{STATUS_LABEL[item.status]}</Text>
+        <View style={{ borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, backgroundColor: statusColor + '20' }}>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: statusColor }}>{STATUS_LABEL[item.status]}</Text>
         </View>
       </View>
 
       {/* Content */}
-      <Text style={s.subject}>{item.subject}</Text>
-      <Text style={s.message} numberOfLines={4}>{item.message}</Text>
+      <Text style={{ fontSize: 16, fontWeight: '800', color: colors.text, marginBottom: 6 }}>{item.subject}</Text>
+      <Text style={{ fontSize: 13, color: colors.textMuted, lineHeight: 20, marginBottom: 10 }} numberOfLines={4}>
+        {item.message}
+      </Text>
 
       {/* Images */}
-      {images.length > 0 && (
-        <ImageGrid images={images} onPress={(i) => setViewer(i)} />
-      )}
+      <ImageGridViewer images={images} />
 
-      {/* Claimed by */}
+      {/* Claimed by row */}
       {item.claimedBy && (
-        <View style={s.claimedRow}>
-          <Ionicons name="shield-checkmark" size={14} color={COLORS.success} />
-          <Text style={s.claimedText}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8, backgroundColor: colors.success + '12', borderRadius: radius.sm, padding: 8 }}>
+          <Ionicons name="shield-checkmark" size={14} color={colors.success} />
+          <Text style={{ fontSize: 12, fontWeight: '600', color: colors.success }}>
             {isClaimer ? 'Your club is handling this' : `Handled by ${item.claimedBy.name}`}
           </Text>
         </View>
       )}
 
-      {/* Accepted clubs for joint */}
+      {/* Accepted partner clubs */}
       {isJointOpen && joinRequests.filter((jr) => jr.status === 'accepted').length > 0 && (
-        <View style={s.joinedClubs}>
-          <Text style={s.joinedLabel}>Also joining: </Text>
-          <Text style={s.joinedNames}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8, gap: 4 }}>
+          <Text style={{ fontSize: 12, color: colors.textMuted, fontWeight: '600' }}>Also joining: </Text>
+          <Text style={{ fontSize: 12, color: colors.primary, fontWeight: '600' }}>
             {joinRequests.filter((jr) => jr.status === 'accepted').map((jr) => jr.club.name).join(', ')}
           </Text>
         </View>
       )}
 
-      {/* ── Exco action buttons ── */}
+      {/* Exco actions */}
       {isExco && (
-        <View style={s.actions}>
-          {/* Pending: claim */}
+        <View style={{ marginTop: 10, gap: 8 }}>
           {item.status === 'pending' && (
-            <TouchableOpacity style={[s.actionBtn, s.claimBtn]} onPress={handleClaim} disabled={loading}>
-              <Ionicons name="hand-left-outline" size={15} color="#fff" />
-              <Text style={s.actionBtnText}>We'll Handle This</Text>
-            </TouchableOpacity>
+            <ActionBtn label="We'll Handle This" icon="hand-left-outline" bg={colors.primary} onPress={handleClaim} />
           )}
-
-          {/* Claimer: mark joint */}
           {isClaimer && item.status === 'claimed' && (
-            <TouchableOpacity style={[s.actionBtn, s.jointBtn]} onPress={handleMarkJoint} disabled={loading}>
-              <Ionicons name="people-outline" size={15} color="#fff" />
-              <Text style={s.actionBtnText}>Open for Joint Project</Text>
-            </TouchableOpacity>
+            <ActionBtn label="Open for Joint Project" icon="people-outline" bg="#8B5CF6" onPress={handleMarkJoint} />
           )}
-
-          {/* Non-claimer: apply to join */}
           {!isClaimer && isJointOpen && !myJoin && (
-            <TouchableOpacity style={[s.actionBtn, s.joinBtn]} onPress={handleJoin} disabled={loading}>
-              <Ionicons name="add-circle-outline" size={15} color="#fff" />
-              <Text style={s.actionBtnText}>Apply to Join</Text>
-            </TouchableOpacity>
+            <ActionBtn label="Apply to Join" icon="add-circle-outline" bg="#0D9488" onPress={handleJoin} />
           )}
 
-          {/* My join status */}
-          {myJoin && (
-            <View style={[s.joinStatus, myJoin.status === 'accepted' ? s.joinAccepted : myJoin.status === 'rejected' ? s.joinRejected : s.joinPending]}>
-              <Text style={s.joinStatusText}>
-                {myJoin.status === 'accepted' ? '✓ Join request accepted' : myJoin.status === 'rejected' ? '✗ Join request rejected' : '⏳ Join request pending'}
-              </Text>
-            </View>
-          )}
+          {myJoin && (() => {
+            const st = myJoin.status;
+            const bg = st === 'accepted' ? colors.success + '15' : st === 'rejected' ? colors.error + '15' : colors.warning + '15';
+            const border = st === 'accepted' ? colors.success : st === 'rejected' ? colors.error : colors.warning;
+            const label = st === 'accepted' ? '✓ Join request accepted' : st === 'rejected' ? '✗ Join request rejected' : '⏳ Join request pending';
+            return (
+              <View style={{ borderRadius: radius.sm, padding: 10, alignItems: 'center', backgroundColor: bg, borderWidth: 1, borderColor: border }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text }}>{label}</Text>
+              </View>
+            );
+          })()}
 
-          {/* Claimer: review join requests */}
           {isClaimer && joinRequests.filter((jr) => jr.status === 'pending').length > 0 && (
-            <View style={s.reviewSection}>
-              <Text style={s.reviewTitle}>Clubs wanting to join:</Text>
+            <View style={{ backgroundColor: colors.background, borderRadius: radius.md, padding: 12, gap: 8 }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textMuted, marginBottom: 4 }}>Clubs wanting to join:</Text>
               {joinRequests.filter((jr) => jr.status === 'pending').map((jr) => (
-                <View key={jr.club._id} style={s.reviewRow}>
-                  <Text style={s.reviewClub}>{jr.club.name}</Text>
-                  <View style={s.reviewBtns}>
-                    <TouchableOpacity style={[s.reviewBtn, s.acceptBtn]} onPress={() => handleReview(jr.club._id, 'accept')} disabled={loading}>
-                      <Text style={s.reviewBtnText}>Accept</Text>
+                <View key={jr.club._id} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text, flex: 1 }}>{jr.club.name}</Text>
+                  <View style={{ flexDirection: 'row', gap: 6 }}>
+                    <TouchableOpacity
+                      style={{ paddingHorizontal: 14, paddingVertical: 6, borderRadius: radius.sm, backgroundColor: colors.success }}
+                      onPress={() => handleReview(jr.club._id, 'accept')} disabled={busy}
+                    >
+                      <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>Accept</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[s.reviewBtn, s.rejectBtn]} onPress={() => handleReview(jr.club._id, 'reject')} disabled={loading}>
-                      <Text style={s.reviewBtnText}>Reject</Text>
+                    <TouchableOpacity
+                      style={{ paddingHorizontal: 14, paddingVertical: 6, borderRadius: radius.sm, backgroundColor: colors.error }}
+                      onPress={() => handleReview(jr.club._id, 'reject')} disabled={busy}
+                    >
+                      <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>Reject</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -312,57 +200,6 @@ export default function HelpRequestCard({ item, myClubId, isExco, onUpdate }: Pr
           )}
         </View>
       )}
-
-      {/* Image viewer */}
-      {viewer !== null && (
-        <ImageViewer images={images} startIndex={viewer} onClose={() => setViewer(null)} />
-      )}
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  card: { backgroundColor: COLORS.surface, borderRadius: 16, padding: 16, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 },
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  avatarCircle: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#E8F0FB', justifyContent: 'center', alignItems: 'center' },
-  name: { fontSize: 14, fontWeight: '700', color: COLORS.text },
-  time: { fontSize: 11, color: COLORS.textMuted, marginTop: 1 },
-  badge: { borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
-  badgeText: { fontSize: 11, fontWeight: '700' },
-  subject: { fontSize: 16, fontWeight: '800', color: COLORS.text, marginBottom: 6 },
-  message: { fontSize: 13, color: COLORS.textMuted, lineHeight: 20, marginBottom: 10 },
-
-  claimedRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8, backgroundColor: COLORS.success + '12', borderRadius: 8, padding: 8 },
-  claimedText: { fontSize: 12, fontWeight: '600', color: COLORS.success },
-  joinedClubs: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 },
-  joinedLabel: { fontSize: 12, color: COLORS.textMuted, fontWeight: '600' },
-  joinedNames: { fontSize: 12, color: COLORS.primary, fontWeight: '600', flex: 1 },
-
-  actions: { marginTop: 8, gap: 8 },
-  actionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 10, paddingVertical: 10 },
-  actionBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  claimBtn: { backgroundColor: COLORS.primary },
-  jointBtn: { backgroundColor: '#8E44AD' },
-  joinBtn:  { backgroundColor: '#16A085' },
-
-  joinStatus: { borderRadius: 8, padding: 10, alignItems: 'center' },
-  joinPending:  { backgroundColor: '#FEF9E7', borderWidth: 1, borderColor: '#F39C12' },
-  joinAccepted: { backgroundColor: COLORS.success + '15', borderWidth: 1, borderColor: COLORS.success },
-  joinRejected: { backgroundColor: COLORS.error   + '15', borderWidth: 1, borderColor: COLORS.error },
-  joinStatusText: { fontSize: 13, fontWeight: '700', color: COLORS.text },
-
-  reviewSection: { backgroundColor: COLORS.background, borderRadius: 10, padding: 12, gap: 8 },
-  reviewTitle: { fontSize: 12, fontWeight: '700', color: COLORS.textMuted, marginBottom: 4 },
-  reviewRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  reviewClub: { fontSize: 13, fontWeight: '600', color: COLORS.text, flex: 1 },
-  reviewBtns: { flexDirection: 'row', gap: 6 },
-  reviewBtn: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 8 },
-  acceptBtn: { backgroundColor: COLORS.success },
-  rejectBtn: { backgroundColor: COLORS.error },
-  reviewBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-});
-
-const vs = StyleSheet.create({
-  closeBtn: { position: 'absolute', top: 50, right: 20, zIndex: 10, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, padding: 6 },
-  counter: { position: 'absolute', top: 56, alignSelf: 'center', zIndex: 10, color: '#fff', fontSize: 14, fontWeight: '600' },
-});
