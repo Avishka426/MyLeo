@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, Alert, Image,
-  Button,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import api from '../../lib/api';
-import { COLORS } from '../../lib/constants';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
+import { Button } from '../../components/ui/Button';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { useRouter } from 'expo-router';
 
@@ -28,6 +25,7 @@ interface Club {
 export default function ClubAccountScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { colors, radius } = useTheme();
   const [club, setClub] = useState<Club | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -56,10 +54,8 @@ export default function ClubAccountScreen() {
     setSaving(true);
     try {
       const res = await api.put(`/clubs/${club._id}`, {
-        name: form.name,
-        district: form.district,
-        contactEmail: form.contactEmail,
-        contactPhone: form.contactPhone,
+        name: form.name, district: form.district,
+        contactEmail: form.contactEmail, contactPhone: form.contactPhone,
         description: form.description,
       });
       setClub(res.data.data);
@@ -72,123 +68,109 @@ export default function ClubAccountScreen() {
   };
 
   if (loading) return <LoadingSpinner />;
-  if (error) return <Text style={styles.error}>{error}</Text>;
-  if (!club) return <Text style={styles.error}>No club assigned to your account.</Text>;
+  if (error || !club) return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+      <Text style={{ color: colors.error, fontSize: 14 }}>{error || 'No club assigned to your account.'}</Text>
+    </View>
+  );
+
+  const FIELDS = [
+    { label: 'Club Name', key: 'name' },
+    { label: 'District', key: 'district' },
+    { label: 'Contact Email', key: 'contactEmail', keyboard: 'email-address' },
+    { label: 'Contact Phone', key: 'contactPhone', keyboard: 'phone-pad' },
+    { label: 'Description', key: 'description', multiline: true },
+  ];
+
+  const INFO_ROWS = [
+    { icon: 'location-outline', label: 'District', value: club.district },
+    { icon: 'mail-outline', label: 'Email', value: club.contactEmail },
+    { icon: 'call-outline', label: 'Phone', value: club.contactPhone || '—' },
+  ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ padding: 20, paddingBottom: 48 }}>
+      {/* Header card */}
+      <View style={{
+        flexDirection: 'row', alignItems: 'center',
+        backgroundColor: colors.card, borderRadius: radius.lg,
+        padding: 20, marginBottom: 16,
+        borderWidth: 1, borderColor: colors.border,
+      }}>
         {club.logo ? (
-          <Image source={{ uri: club.logo }} style={styles.logo} />
+          <Image source={{ uri: club.logo }} style={{ width: 64, height: 64, borderRadius: 12 }} />
         ) : (
-          <View style={styles.logoPlaceholder}>
-            <Ionicons name="shield-checkmark" size={36} color={COLORS.primary} />
+          <View style={{ width: 64, height: 64, borderRadius: 12, backgroundColor: colors.primaryLight, justifyContent: 'center', alignItems: 'center' }}>
+            <Ionicons name="shield-checkmark" size={32} color={colors.primary} />
           </View>
         )}
         <View style={{ flex: 1, marginLeft: 16 }}>
-          <Text style={styles.clubName}>{club.name}</Text>
-          <Text style={styles.clubCode}>{club.clubCode}</Text>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text, marginBottom: 2 }}>{club.name}</Text>
+          <Text style={{ fontSize: 13, color: colors.primary, fontWeight: '600', marginBottom: 6 }}>{club.clubCode}</Text>
           <Badge label={club.status} status={club.status} />
         </View>
         <TouchableOpacity onPress={() => setEditing(!editing)}>
-          <Ionicons name={editing ? 'close-outline' : 'pencil-outline'} size={22} color={COLORS.primary} />
+          <Ionicons name={editing ? 'close-outline' : 'pencil-outline'} size={22} color={colors.primary} />
         </TouchableOpacity>
-        
       </View>
 
-      <View>
-        <Button title='View Members' onPress={() => router.push('/(exco)/members')} />
-      </View>
+      {/* View Members */}
+      <Button
+        label="View Members"
+        variant="secondary"
+        onPress={() => router.push('/(exco)/members')}
+        style={{ marginBottom: 16 }}
+      />
 
       {editing ? (
         <Card>
-          <Text style={styles.sectionTitle}>Edit Club Details</Text>
-          {[
-            { label: 'Club Name', key: 'name' },
-            { label: 'District', key: 'district' },
-            { label: 'Contact Email', key: 'contactEmail', keyboard: 'email-address' },
-            { label: 'Contact Phone', key: 'contactPhone', keyboard: 'phone-pad' },
-            { label: 'Description', key: 'description', multiline: true },
-          ].map((field) => (
+          <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text, marginBottom: 12 }}>Edit Club Details</Text>
+          {FIELDS.map((field) => (
             <View key={field.key}>
-              <Text style={styles.label}>{field.label}</Text>
+              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginBottom: 5, marginTop: 10 }}>
+                {field.label}
+              </Text>
               <TextInput
-                style={[styles.input, field.multiline && styles.textarea]}
+                style={{
+                  backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border,
+                  borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 10,
+                  fontSize: 14, color: colors.text,
+                  height: field.multiline ? 80 : undefined,
+                  textAlignVertical: field.multiline ? 'top' : 'auto',
+                }}
                 value={(form as any)[field.key] || ''}
                 onChangeText={(v) => setForm({ ...form, [field.key]: v })}
                 keyboardType={(field.keyboard as any) || 'default'}
                 multiline={field.multiline}
                 numberOfLines={field.multiline ? 3 : 1}
-                textAlignVertical={field.multiline ? 'top' : 'auto'}
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={colors.textMuted}
               />
             </View>
           ))}
-          <TouchableOpacity style={[styles.saveBtn, saving && styles.disabled]} onPress={handleSave} disabled={saving}>
-            <Text style={styles.saveBtnText}>{saving ? 'Saving…' : 'Save Changes'}</Text>
-          </TouchableOpacity>
+          <Button label={saving ? 'Saving…' : 'Save Changes'} onPress={handleSave} loading={saving} style={{ marginTop: 16 }} />
         </Card>
       ) : (
         <>
           <Card>
-            <Text style={styles.sectionTitle}>Club Information</Text>
-            {[
-              { icon: 'location-outline', label: 'District', value: club.district },
-              { icon: 'mail-outline', label: 'Email', value: club.contactEmail },
-              { icon: 'call-outline', label: 'Phone', value: club.contactPhone || '—' },
-            ].map((row) => (
-              <View key={row.label} style={styles.infoRow}>
-                <Ionicons name={row.icon as any} size={16} color={COLORS.primary} />
+            <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text, marginBottom: 12 }}>Club Information</Text>
+            {INFO_ROWS.map((row) => (
+              <View key={row.label} style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 }}>
+                <Ionicons name={row.icon as any} size={16} color={colors.primary} />
                 <View style={{ marginLeft: 10 }}>
-                  <Text style={styles.infoLabel}>{row.label}</Text>
-                  <Text style={styles.infoValue}>{row.value}</Text>
+                  <Text style={{ fontSize: 11, color: colors.textMuted }}>{row.label}</Text>
+                  <Text style={{ fontSize: 14, color: colors.text, fontWeight: '500' }}>{row.value}</Text>
                 </View>
               </View>
             ))}
           </Card>
           {club.description && (
             <Card>
-              <Text style={styles.sectionTitle}>About.</Text>
-              <Text style={styles.body}>{club.description}</Text>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text, marginBottom: 8 }}>About</Text>
+              <Text style={{ fontSize: 14, color: colors.textMuted, lineHeight: 22 }}>{club.description}</Text>
             </Card>
           )}
         </>
       )}
     </ScrollView>
   );
-} 
-
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 20, paddingBottom: 40 },
-  header: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface,
-    borderRadius: 16, padding: 20, marginBottom: 16,
-    shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, elevation: 3,
-  },
-  logo: { width: 64, height: 64, borderRadius: 12 },
-  logoPlaceholder: {
-    width: 64, height: 64, borderRadius: 12, backgroundColor: '#E8F0FB',
-    justifyContent: 'center', alignItems: 'center',
-  },
-  clubName: { fontSize: 18, fontWeight: '800', color: COLORS.text, marginBottom: 2 },
-  clubCode: { fontSize: 13, color: COLORS.primary, fontWeight: '600', marginBottom: 6 },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
-  infoRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
-  infoLabel: { fontSize: 11, color: COLORS.textMuted },
-  infoValue: { fontSize: 14, color: COLORS.text, fontWeight: '500' },
-  body: { fontSize: 14, color: COLORS.textMuted, lineHeight: 22 },
-  label: { fontSize: 12, fontWeight: '600', color: COLORS.text, marginBottom: 5, marginTop: 10 },
-  input: {
-    backgroundColor: COLORS.background, borderWidth: 1, borderColor: COLORS.border,
-    borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: COLORS.text,
-  },
-  textarea: { height: 80, paddingTop: 10 },
-  saveBtn: {
-    backgroundColor: COLORS.primary, borderRadius: 10, padding: 14, alignItems: 'center', marginTop: 16,
-  },
-  disabled: { opacity: 0.6 },
-  saveBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  error: { textAlign: 'center', color: COLORS.error, marginTop: 60 },
-});
+}

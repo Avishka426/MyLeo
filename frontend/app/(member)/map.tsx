@@ -71,7 +71,6 @@ export default function MapScreen() {
         ))}
       </MapView>
 
-      {/* Project count badge */}
       <View style={{
         position: 'absolute', top: 12, right: 12,
         flexDirection: 'row', alignItems: 'center',
@@ -85,7 +84,6 @@ export default function MapScreen() {
         </Text>
       </View>
 
-      {/* Selected project card */}
       {selected && (
         <View style={{
           position: 'absolute', bottom: 24, left: 16, right: 16,
@@ -101,9 +99,7 @@ export default function MapScreen() {
               <Ionicons name="close" size={20} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
-          <Text style={{ fontSize: 12, color: colors.primary, fontWeight: '600', marginBottom: 10 }}>
-            {selected.club?.name}
-          </Text>
+          <Text style={{ fontSize: 12, color: colors.primary, fontWeight: '600', marginBottom: 10 }}>{selected.club?.name}</Text>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
             <View style={{ backgroundColor: colors.background, borderRadius: radius.sm, paddingHorizontal: 8, paddingVertical: 3 }}>
               <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textMuted }}>{selected.category}</Text>

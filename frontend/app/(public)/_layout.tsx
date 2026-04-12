@@ -1,16 +1,17 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../../lib/constants';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function PublicLayout() {
+  const { colors } = useTheme();
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textMuted,
-        tabBarStyle: { backgroundColor: COLORS.surface, borderTopColor: COLORS.border },
-        headerStyle: { backgroundColor: COLORS.primary },
-        headerTintColor: '#fff',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+        headerStyle: { backgroundColor: colors.primary },
+        headerTintColor: colors.onPrimary,
         headerTitleStyle: { fontWeight: '700' },
       }}
     >
@@ -34,6 +35,17 @@ export default function PublicLayout() {
           title: 'Project Map',
           tabBarIcon: ({ color, size }) => <Ionicons name="map-outline" size={size} color={color} />,
         }}
+      />
+      <Tabs.Screen
+        name="clubs"
+        options={{
+          title: 'Clubs',
+          tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="clubs/[id]"
+        options={{ href: null }}
       />
     </Tabs>
   );

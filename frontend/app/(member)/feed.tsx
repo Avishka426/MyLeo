@@ -1,13 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, FlatList, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../lib/api';
 import { useTheme } from '../../context/ThemeContext';
 import { Card } from '../../components/ui/Card';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ImageGridViewer } from '../../components/ImageGridViewer';
-import { useAuth } from '../../context/AuthContext';
 
 interface NewsPost {
   _id: string;
@@ -18,13 +16,11 @@ interface NewsPost {
   club: { name: string; clubCode: string; logo?: string };
 }
 
-export default function FeedScreen() {
+export default function MemberFeedScreen() {
   const [posts, setPosts] = useState<NewsPost[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const { colors } = useTheme();
-  const router = useRouter();
-  const { user } = useAuth();
 
   const fetchPosts = useCallback(async () => {
     try {
@@ -59,15 +55,6 @@ export default function FeedScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {!user && (
-        <TouchableOpacity
-          style={{ backgroundColor: colors.primary, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', padding: 11, gap: 8 }}
-          onPress={() => router.push('/(auth)/sign-in')}
-        >
-          <Ionicons name="log-in-outline" size={16} color="#fff" />
-          <Text style={{ color: '#fff', fontWeight: '600', fontSize: 13 }}>Sign in for full access</Text>
-        </TouchableOpacity>
-      )}
       {error ? <Text style={{ color: colors.error, textAlign: 'center', padding: 12, fontSize: 13 }}>{error}</Text> : null}
       <FlatList
         data={posts}
@@ -75,7 +62,7 @@ export default function FeedScreen() {
         renderItem={renderPost}
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
-        ListEmptyComponent={<EmptyState icon="newspaper-outline" title="No posts yet" subtitle="Check back soon for the latest news from Leo clubs." />}
+        ListEmptyComponent={<EmptyState icon="newspaper-outline" title="No posts yet" subtitle="Check back soon for the latest news." />}
       />
     </View>
   );

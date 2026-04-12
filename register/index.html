@@ -3,385 +3,454 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Leo Moment – Register Member</title>
+  <title>MyLeo · Admin Portal</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+    :root {
+      --primary: #1B4F8A; --primary-dark: #143d6b; --accent: #FFD700;
+      --bg: #0f1923; --surface: #1a2535; --surface2: #212f42; --border: #2e3f57;
+      --text: #e8edf3; --muted: #7a90a8; --success: #27AE60; --error: #e74c3c;
+      --radius: 12px;
+    }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #F5F7FA;
-      min-height: 100vh;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 40px 16px;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; padding: 32px 16px 64px;
     }
 
-    .wrapper { width: 100%; max-width: 520px; }
+    /* Header */
+    .header { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+    .header-icon { width: 48px; height: 48px; background: var(--primary); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .header h1 { font-size: 24px; font-weight: 800; }
+    .header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
 
-    .logo {
-      text-align: center;
-      margin-bottom: 32px;
+    /* Card */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; width: 100%; max-width: 560px; }
+    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .card-sub   { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 28px; background: var(--surface2); border-radius: 10px; padding: 4px; }
+    .tab {
+      flex: 1; padding: 9px; text-align: center; font-size: 13px; font-weight: 700;
+      border-radius: 8px; cursor: pointer; color: var(--muted); transition: all .15s;
+      border: none; background: transparent;
     }
-    .logo-icon {
-      width: 64px; height: 64px; border-radius: 16px;
-      background: #1B4F8A; display: inline-flex;
-      align-items: center; justify-content: center;
-      margin-bottom: 12px;
+    .tab.active { background: var(--primary); color: #fff; }
+
+    /* Form */
+    .field { margin-bottom: 14px; }
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; }
+    input, select, textarea {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 11px 14px; font-size: 14px; color: var(--text); outline: none; transition: border-color .15s;
     }
-    .logo-icon svg { width: 34px; height: 34px; fill: #fff; }
-    .logo h1 { font-size: 22px; font-weight: 800; color: #1A1A2E; }
-    .logo p  { font-size: 13px; color: #6B7280; margin-top: 4px; }
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+    select option { background: var(--surface2); }
+    textarea { resize: vertical; min-height: 70px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 28px 32px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      margin-bottom: 16px;
+    /* Button */
+    .btn {
+      width: 100%; padding: 13px; background: var(--primary); color: #fff;
+      font-size: 15px; font-weight: 700; border: none; border-radius: 8px;
+      cursor: pointer; transition: background .15s, opacity .15s; margin-top: 8px;
     }
+    .btn:hover    { background: var(--primary-dark); }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .btn.secondary { background: transparent; border: 1px solid var(--border); color: var(--muted); margin-top: 0; }
+    .btn.secondary:hover { border-color: var(--primary); color: var(--text); }
+    .btn.danger { background: var(--error); }
 
-    .card h2 {
-      font-size: 15px;
-      font-weight: 700;
-      color: #1A1A2E;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .card h2 .step {
-      width: 24px; height: 24px; border-radius: 50%;
-      background: #1B4F8A; color: #fff;
-      font-size: 12px; font-weight: 800;
-      display: inline-flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
+    /* Alert */
+    .alert { border-radius: 8px; padding: 11px 14px; font-size: 13px; margin-bottom: 16px; display: none; }
+    .alert.error   { background: #2d1111; border: 1px solid var(--error);   color: #f1948a; }
+    .alert.success { background: #0d2318; border: 1px solid var(--success); color: #82e0aa; }
+    .alert.show    { display: block; }
 
-    label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: #1A1A2E;
-      margin-bottom: 5px;
-      margin-top: 14px;
-    }
-    label:first-of-type { margin-top: 0; }
+    /* Token bar */
+    .token-bar { display: flex; align-items: center; gap: 10px; background: var(--surface2); border: 1px solid var(--success); border-radius: 8px; padding: 10px 14px; margin-bottom: 24px; font-size: 13px; color: var(--success); }
 
-    input, select {
-      width: 100%;
-      padding: 11px 14px;
-      border: 1.5px solid #E5E7EB;
-      border-radius: 9px;
-      font-size: 14px;
-      color: #1A1A2E;
-      background: #F9FAFB;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-    input:focus, select:focus { border-color: #1B4F8A; background: #fff; }
+    /* Step */
+    .step { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 20px; }
+    .step-dot { width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: 800; }
 
-    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    /* Divider */
+    hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
 
-    button {
-      width: 100%;
-      padding: 13px;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 20px;
-      transition: opacity 0.15s, transform 0.1s;
-    }
-    button:active { transform: scale(0.98); }
-    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    /* Clubs list */
+    .club-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+    .club-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+    .club-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .club-info { flex: 1; min-width: 0; }
+    .club-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .club-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .club-badge { font-size: 10px; font-weight: 700; background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 20px; }
 
-    .btn-primary { background: #1B4F8A; color: #fff; }
-    .btn-success { background: #1a6b3a; color: #fff; }
+    /* Cred card */
+    .cred-card { background: var(--surface2); border: 1px solid var(--accent); border-radius: var(--radius); padding: 22px; margin-top: 20px; display: none; }
+    .cred-card.show { display: block; }
+    .cred-title { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 14px; }
+    .cred-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .cred-row:last-child { border-bottom: none; }
+    .cred-key { color: var(--muted); font-weight: 600; }
+    .cred-val { color: var(--text); font-weight: 700; text-align: right; word-break: break-all; max-width: 60%; }
+    .cred-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .cred-actions .btn { width: auto; padding: 9px 18px; font-size: 13px; margin-top: 0; }
 
-    .alert {
-      border-radius: 9px;
-      padding: 12px 14px;
-      font-size: 13px;
-      margin-top: 14px;
-      display: none;
-    }
-    .alert.show { display: block; }
-    .alert-error   { background: #FEE2E2; color: #B91C1C; }
-    .alert-success { background: #D1FAE5; color: #065F46; }
-    .alert-info    { background: #DBEAFE; color: #1E40AF; }
+    /* Spinner */
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .token-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border-radius: 9px;
-      font-size: 13px;
-      font-weight: 600;
-      background: #F3F4F6;
-      color: #6B7280;
-      margin-top: 14px;
-    }
-    .token-status.signed-in { background: #D1FAE5; color: #065F46; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-
-    #step2-card { opacity: 0.45; pointer-events: none; transition: opacity 0.3s; }
-    #step2-card.unlocked { opacity: 1; pointer-events: all; }
-
-    .api-url-row { display: flex; gap: 10px; align-items: flex-end; }
-    .api-url-row input { flex: 1; }
-    .api-url-row button {
-      width: auto; margin: 0; padding: 11px 18px;
-      font-size: 13px; border-radius: 9px; white-space: nowrap;
-    }
-
-    .result-box {
-      background: #F0FDF4;
-      border: 1.5px solid #86EFAC;
-      border-radius: 10px;
-      padding: 16px;
-      margin-top: 16px;
-      display: none;
-    }
-    .result-box.show { display: block; }
-    .result-box h3 { font-size: 14px; font-weight: 700; color: #065F46; margin-bottom: 10px; }
-    .result-box .field { font-size: 13px; color: #1A1A2E; margin-bottom: 4px; }
-    .result-box .field span { font-weight: 600; }
-
-    footer {
-      text-align: center;
-      font-size: 12px;
-      color: #9CA3AF;
-      margin-top: 12px;
-    }
+    #mainPanel { display: none; }
   </style>
 </head>
 <body>
 
-<div class="wrapper">
+<div class="header">
+  <div class="header-icon">🦁</div>
+  <div>
+    <h1>MyLeo Admin</h1>
+    <p>Club &amp; Exco Management Portal</p>
+  </div>
+</div>
 
-  <div class="logo">
-    <div class="logo-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V5L12 1z"/></svg>
-    </div>
-    <h1>Leo Moment</h1>
-    <p>Internal Member Registration Tool</p>
+<!-- ── Step 1: Sign In ── -->
+<div class="card" id="loginPanel">
+  <div class="step"><div class="step-dot">1</div> Admin Sign In</div>
+  <p class="card-sub">Sign in with your system admin account to continue.</p>
+  <div id="loginAlert" class="alert error"></div>
+  <div class="field">
+    <label>Email</label>
+    <input type="email" id="adminEmail" placeholder="admin@myleo.app" />
+  </div>
+  <div class="field">
+    <label>Password</label>
+    <input type="password" id="adminPassword" placeholder="••••••••" />
+  </div>
+  <button class="btn" id="loginBtn" onclick="handleLogin()">Sign In</button>
+</div>
+
+<!-- ── Step 2: Main Panel ── -->
+<div class="card" id="mainPanel">
+  <div class="token-bar">
+    ✅ &nbsp;Signed in as <strong id="adminEmailDisplay"></strong>
+    &nbsp;·&nbsp;
+    <a href="#" onclick="handleLogout()" style="color:var(--muted);font-size:12px;">Sign out</a>
   </div>
 
-  <!-- Step 1: Sign In -->
-  <div class="card" id="step1-card">
-    <h2><span class="step">1</span> Admin / EXCO Sign In</h2>
-
-    <div class="api-url-row">
-      <div style="flex:1">
-        <label for="apiUrl">API URL</label>
-        <input type="text" id="apiUrl" value="http://localhost:3000/api" placeholder="http://localhost:3000/api" />
-      </div>
-    </div>
-
-    <label for="adminEmail">Email</label>
-    <input type="email" id="adminEmail" placeholder="admin@example.com" />
-
-    <label for="adminPassword">Password</label>
-    <input type="password" id="adminPassword" placeholder="Your password" />
-
-    <button class="btn-primary" id="signInBtn" onclick="doSignIn()">Sign In</button>
-
-    <div class="alert alert-error" id="signInError"></div>
-
-    <div class="token-status" id="tokenStatus">
-      <span class="dot"></span>
-      <span id="tokenStatusText">Not signed in</span>
-    </div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('clubs')">🏛 Clubs</button>
+    <button class="tab"        onclick="showTab('register')">➕ Register Exco</button>
   </div>
 
-  <!-- Step 2: Register Member -->
-  <div class="card" id="step2-card">
-    <h2><span class="step">2</span> Register New Member</h2>
+  <!-- ── Tab: Clubs ── -->
+  <div id="tabClubs">
+    <p class="card-sub" style="margin-bottom:18px;">Create a new club or view existing ones.</p>
+    <div id="clubAlert" class="alert"></div>
 
-    <div class="row2">
-      <div>
-        <label for="firstName">First Name *</label>
-        <input type="text" id="firstName" placeholder="First name" />
+    <div class="row">
+      <div class="field">
+        <label>Club Name *</label>
+        <input type="text" id="clubName" placeholder="Leo Club of Colombo" />
       </div>
-      <div>
-        <label for="lastName">Last Name *</label>
-        <input type="text" id="lastName" placeholder="Last name" />
+      <div class="field">
+        <label>Club Code *</label>
+        <input type="text" id="clubCode" placeholder="LEOCMB" style="text-transform:uppercase" />
       </div>
     </div>
+    <div class="row">
+      <div class="field">
+        <label>District *</label>
+        <input type="text" id="clubDistrict" placeholder="District 306 B2" />
+      </div>
+      <div class="field">
+        <label>Contact Email *</label>
+        <input type="email" id="clubEmail" placeholder="leo@example.com" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Description (optional)</label>
+      <textarea id="clubDesc" placeholder="Brief description of the club…"></textarea>
+    </div>
+    <button class="btn" id="createClubBtn" onclick="handleCreateClub()">Create Club</button>
 
-    <label for="memberEmail">Email *</label>
-    <input type="email" id="memberEmail" placeholder="member@example.com" />
-
-    <label for="memberPhone">Phone</label>
-    <input type="tel" id="memberPhone" placeholder="+94 77 000 0000" />
-
-    <label for="position">Position *</label>
-    <select id="position">
-      <option value="Member">Member</option>
-      <option value="President">President</option>
-      <option value="Vice President">Vice President</option>
-      <option value="Secretary">Secretary</option>
-      <option value="Assistant Secretary">Assistant Secretary</option>
-      <option value="Treasurer">Treasurer</option>
-      <option value="Assistant Treasurer">Assistant Treasurer</option>
-    </select>
-
-    <label for="memberPassword">Temporary Password *</label>
-    <input type="text" id="memberPassword" placeholder="Min 8 characters" />
-    <small style="color:#6B7280;font-size:12px;margin-top:4px;display:block">Member will be prompted to change this on first login.</small>
-
-    <button class="btn-success" id="registerBtn" onclick="doRegister()">Register Member</button>
-
-    <div class="alert" id="registerAlert"></div>
-    <div class="result-box" id="resultBox">
-      <h3>✓ Member Registered Successfully</h3>
-      <div class="field">Name: <span id="r-name"></span></div>
-      <div class="field">Email: <span id="r-email"></span></div>
-      <div class="field">Position: <span id="r-position"></span></div>
-      <div class="field">Role assigned: <span id="r-role"></span></div>
+    <hr />
+    <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;">EXISTING CLUBS</div>
+    <div id="clubList" class="club-list">
+      <div style="color:var(--muted);font-size:13px;">Loading…</div>
     </div>
   </div>
 
-  <footer>Leo Moment · Internal tool · Do not share this page publicly</footer>
+  <!-- ── Tab: Register Exco ── -->
+  <div id="tabRegister" style="display:none;">
+    <p class="card-sub" style="margin-bottom:18px;">Register a new exco member for any club.</p>
+    <div id="regAlert" class="alert"></div>
+
+    <div class="field">
+      <label>Club *</label>
+      <select id="clubSelect">
+        <option value="">— Select a club —</option>
+      </select>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>First Name *</label>
+        <input type="text" id="firstName" placeholder="John" />
+      </div>
+      <div class="field">
+        <label>Last Name *</label>
+        <input type="text" id="lastName" placeholder="Smith" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Email Address *</label>
+      <input type="email" id="memberEmail" placeholder="john@leo.org" />
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Password *</label>
+        <input type="text" id="memberPassword" placeholder="Temp password" />
+      </div>
+      <div class="field">
+        <label>Phone (optional)</label>
+        <input type="tel" id="memberPhone" placeholder="+94 77 000 0000" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Exco Position *</label>
+      <select id="positionSelect">
+        <option>President</option>
+        <option>Vice President</option>
+        <option>Secretary</option>
+        <option>Assistant Secretary</option>
+        <option>Treasurer</option>
+        <option>Assistant Treasurer</option>
+      </select>
+    </div>
+    <button class="btn" id="registerBtn" onclick="handleRegister()">Register Exco Member</button>
+
+    <!-- Credentials display -->
+    <div class="cred-card" id="credCard">
+      <div class="cred-title">🎉 Registered — share these credentials</div>
+      <div class="cred-row"><span class="cred-key">Name</span>     <span class="cred-val" id="cName"></span></div>
+      <div class="cred-row"><span class="cred-key">Club</span>     <span class="cred-val" id="cClub"></span></div>
+      <div class="cred-row"><span class="cred-key">Position</span> <span class="cred-val" id="cPosition"></span></div>
+      <div class="cred-row"><span class="cred-key">Email</span>    <span class="cred-val" id="cEmail"></span></div>
+      <div class="cred-row"><span class="cred-key">Password</span> <span class="cred-val" id="cPassword"></span></div>
+      <div class="cred-actions">
+        <button class="btn" onclick="copyCredentials()">📋 Copy</button>
+        <button class="btn secondary" onclick="resetRegForm()">+ Another</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-  let authToken = null;
+  const API = 'http://localhost:3000/api';
+  let token = localStorage.getItem('leo_admin_token');
+  let clubs  = [];
+  let lastCred = null;
 
-  async function doSignIn() {
-    const btn = document.getElementById('signInBtn');
-    const errBox = document.getElementById('signInError');
-    const apiUrl = document.getElementById('apiUrl').value.trim().replace(/\/$/, '');
-    const email = document.getElementById('adminEmail').value.trim();
-    const password = document.getElementById('adminPassword').value;
+  window.onload = () => {
+    if (token) { showMainPanel(); loadClubs(); }
+    generatePassword();
+  };
 
-    errBox.className = 'alert';
-    errBox.textContent = '';
-
-    if (!email || !password) {
-      showAlert(errBox, 'alert-error', 'Please enter email and password.');
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Signing in…';
-
+  // ── Auth ──────────────────────────────────────────────────────
+  async function handleLogin() {
+    const email    = v('adminEmail');
+    const password = v('adminPassword');
+    const btn      = el('loginBtn');
+    const alert    = el('loginAlert');
+    if (!email || !password) return showAlert(alert, 'Enter email and password.');
+    setLoading(btn, true, 'Signing in…');
     try {
-      const res = await fetch(`${apiUrl}/auth/signin`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || 'Sign in failed');
-
-      const role = data.user?.role;
-      if (role !== 'club_exco' && role !== 'system_admin') {
-        throw new Error(`Access denied. Your role is '${role}'. Only Club EXCO or Admin can register members.`);
-      }
-
-      authToken = data.token;
-      window._apiUrl = apiUrl;
-
-      const status = document.getElementById('tokenStatus');
-      status.className = 'token-status signed-in';
-      document.getElementById('tokenStatusText').textContent =
-        `Signed in as ${data.user.email} (${role.replace('_', ' ')})`;
-
-      document.getElementById('step2-card').classList.add('unlocked');
-      btn.textContent = '✓ Signed In';
-
-    } catch (err) {
-      authToken = null;
-      showAlert(errBox, 'alert-error', err.message);
-      btn.disabled = false;
-      btn.textContent = 'Sign In';
-    }
-  }
-
-  async function doRegister() {
-    const btn = document.getElementById('registerBtn');
-    const alertBox = document.getElementById('registerAlert');
-    const resultBox = document.getElementById('resultBox');
-
-    alertBox.className = 'alert';
-    alertBox.textContent = '';
-    resultBox.className = 'result-box';
-
-    const firstName = document.getElementById('firstName').value.trim();
-    const lastName  = document.getElementById('lastName').value.trim();
-    const email     = document.getElementById('memberEmail').value.trim();
-    const phone     = document.getElementById('memberPhone').value.trim();
-    const position  = document.getElementById('position').value;
-    const password  = document.getElementById('memberPassword').value;
-
-    if (!firstName || !lastName || !email || !password) {
-      showAlert(alertBox, 'alert-error', 'First name, last name, email, and password are required.');
-      return;
-    }
-    if (password.length < 8) {
-      showAlert(alertBox, 'alert-error', 'Password must be at least 8 characters.');
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Registering…';
-
-    try {
-      const body = { firstName, lastName, email, position, password };
-      if (phone) body.phone = phone;
-
-      const res = await fetch(`${window._apiUrl}/members`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || 'Registration failed');
-
-      const excoPositions = ['President','Vice President','Secretary','Assistant Secretary','Treasurer','Assistant Treasurer'];
-      const role = excoPositions.includes(position) ? 'club_exco' : 'leo_member';
-
-      document.getElementById('r-name').textContent = `${firstName} ${lastName}`;
-      document.getElementById('r-email').textContent = email;
-      document.getElementById('r-position').textContent = position;
-      document.getElementById('r-role').textContent = role.replace('_', ' ');
-      resultBox.classList.add('show');
-
-      // Clear form
-      ['firstName','lastName','memberEmail','memberPhone','memberPassword'].forEach(id => {
-        document.getElementById(id).value = '';
-      });
-      document.getElementById('position').value = 'Member';
-
-    } catch (err) {
-      showAlert(alertBox, 'alert-error', err.message);
+      const data = await req('POST', '/auth/signin', { email, password }, false);
+      if (data.user.role !== 'system_admin') throw new Error('Access denied. System admin account required.');
+      token = data.token;
+      localStorage.setItem('leo_admin_token', token);
+      el('adminEmailDisplay').textContent = email;
+      showMainPanel();
+      loadClubs();
+    } catch (e) {
+      showAlert(alert, e.message);
     } finally {
-      btn.disabled = false;
-      btn.textContent = 'Register Member';
+      setLoading(btn, false, 'Sign In');
     }
   }
 
-  function showAlert(el, cls, msg) {
-    el.className = `alert ${cls} show`;
-    el.textContent = msg;
+  function handleLogout() {
+    token = null;
+    localStorage.removeItem('leo_admin_token');
+    el('mainPanel').style.display  = 'none';
+    el('loginPanel').style.display = 'block';
+    el('adminEmail').value = '';
+    el('adminPassword').value = '';
   }
 
-  // Allow Enter key on sign-in fields
-  ['adminEmail','adminPassword'].forEach(id => {
-    document.getElementById(id).addEventListener('keydown', e => {
-      if (e.key === 'Enter') doSignIn();
-    });
-  });
-</script>
+  function showMainPanel() {
+    el('loginPanel').style.display = 'none';
+    el('mainPanel').style.display  = 'block';
+  }
 
+  // ── Tabs ─────────────────────────────────────────────────────
+  function showTab(name) {
+    el('tabClubs').style.display    = name === 'clubs'    ? 'block' : 'none';
+    el('tabRegister').style.display = name === 'register' ? 'block' : 'none';
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', (name === 'clubs' && i === 0) || (name === 'register' && i === 1));
+    });
+  }
+
+  // ── Load clubs ───────────────────────────────────────────────
+  async function loadClubs() {
+    try {
+      const data = await req('GET', '/clubs');
+      clubs = data.data;
+      renderClubList();
+      renderClubSelect();
+    } catch (e) {
+      el('clubList').innerHTML = `<div style="color:var(--error);font-size:13px;">Failed to load clubs: ${e.message}</div>`;
+    }
+  }
+
+  function renderClubList() {
+    const list = el('clubList');
+    if (!clubs.length) { list.innerHTML = '<div style="color:var(--muted);font-size:13px;">No clubs yet. Create one above.</div>'; return; }
+    list.innerHTML = clubs.map(c => `
+      <div class="club-item">
+        <div class="club-icon">🏛</div>
+        <div class="club-info">
+          <div class="club-name">${c.name}</div>
+          <div class="club-meta">${c.district} &nbsp;·&nbsp; ${c.contactEmail}</div>
+        </div>
+        <span class="club-badge">${c.clubCode}</span>
+      </div>
+    `).join('');
+  }
+
+  function renderClubSelect() {
+    const sel = el('clubSelect');
+    sel.innerHTML = '<option value="">— Select a club —</option>';
+    clubs.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c._id;
+      opt.textContent = `${c.name} (${c.clubCode})`;
+      sel.appendChild(opt);
+    });
+  }
+
+  // ── Create club ──────────────────────────────────────────────
+  async function handleCreateClub() {
+    const name     = v('clubName');
+    const clubCode = v('clubCode').toUpperCase();
+    const district = v('clubDistrict');
+    const contactEmail = v('clubEmail');
+    const description  = v('clubDesc');
+    const btn   = el('createClubBtn');
+    const alert = el('clubAlert');
+    alert.className = 'alert';
+
+    if (!name || !clubCode || !district || !contactEmail) return showAlert(alert, 'Name, code, district and email are required.');
+    setLoading(btn, true, 'Creating…');
+    try {
+      await req('POST', '/clubs', { name, clubCode, district, contactEmail, description, status: 'active' });
+      showAlert(alert, `✅ "${name}" created successfully.`, 'success');
+      el('clubName').value = el('clubCode').value = el('clubDistrict').value = el('clubEmail').value = el('clubDesc').value = '';
+      loadClubs();
+    } catch (e) {
+      showAlert(alert, e.message);
+    } finally {
+      setLoading(btn, false, 'Create Club');
+    }
+  }
+
+  // ── Register exco ────────────────────────────────────────────
+  function generatePassword() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
+    let pw = '';
+    for (let i = 0; i < 10; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+    const f = el('memberPassword');
+    if (f) f.value = pw;
+  }
+
+  async function handleRegister() {
+    const clubId    = v('clubSelect');
+    const firstName = v('firstName');
+    const lastName  = v('lastName');
+    const email     = v('memberEmail');
+    const password  = v('memberPassword');
+    const phone     = v('memberPhone');
+    const position  = v('positionSelect');
+    const btn   = el('registerBtn');
+    const alert = el('regAlert');
+    alert.className = 'alert';
+
+    if (!clubId)    return showAlert(alert, 'Select a club.');
+    if (!firstName || !lastName) return showAlert(alert, 'First and last name are required.');
+    if (!email)     return showAlert(alert, 'Email is required.');
+    if (!password || password.length < 6) return showAlert(alert, 'Password must be at least 6 characters.');
+
+    setLoading(btn, true, 'Registering…');
+    try {
+      await req('POST', '/members', { club: clubId, firstName, lastName, email, password, phone, position });
+      const club = clubs.find(c => c._id === clubId);
+      lastCred = { name: `${firstName} ${lastName}`, club: club?.name || '', position, email, password };
+      showCredentials(lastCred);
+      showAlert(alert, `✅ ${firstName} ${lastName} registered. Credentials sent to ${email}.`, 'success');
+    } catch (e) {
+      showAlert(alert, e.message);
+    } finally {
+      setLoading(btn, false, 'Register Exco Member');
+    }
+  }
+
+  function showCredentials({ name, club, position, email, password }) {
+    el('cName').textContent     = name;
+    el('cClub').textContent     = club;
+    el('cPosition').textContent = position;
+    el('cEmail').textContent    = email;
+    el('cPassword').textContent = password;
+    el('credCard').className    = 'cred-card show';
+    el('credCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function copyCredentials() {
+    if (!lastCred) return;
+    const t = `MyLeo Exco Credentials\n${'─'.repeat(24)}\nName:     ${lastCred.name}\nClub:     ${lastCred.club}\nPosition: ${lastCred.position}\nEmail:    ${lastCred.email}\nPassword: ${lastCred.password}\n${'─'.repeat(24)}\nDownload the MyLeo app and sign in with the above credentials.`;
+    navigator.clipboard.writeText(t).then(() => {
+      event.target.textContent = '✅ Copied!';
+      setTimeout(() => event.target.textContent = '📋 Copy', 2000);
+    });
+  }
+
+  function resetRegForm() {
+    ['firstName','lastName','memberEmail','memberPhone'].forEach(id => el(id).value = '');
+    el('clubSelect').value = '';
+    el('credCard').className = 'cred-card';
+    el('regAlert').className = 'alert';
+    generatePassword();
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────
+  async function req(method, path, body, auth = true) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (auth) headers['Authorization'] = `Bearer ${token}`;
+    const res  = await fetch(`${API}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || `${method} ${path} failed`);
+    return data;
+  }
+
+  function showAlert(el, msg, type = 'error') { el.textContent = msg; el.className = `alert ${type} show`; }
+  function setLoading(btn, on, label) { btn.disabled = on; btn.innerHTML = on ? `<span class="spinner"></span>${label}` : label; }
+  function el(id) { return document.getElementById(id); }
+  function v(id)  { return (el(id)?.value || '').trim(); }
+
+  ['adminEmail','adminPassword'].forEach(id => el(id)?.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); }));
+</script>
 </body>
 </html>
