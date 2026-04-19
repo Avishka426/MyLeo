@@ -4,6 +4,8 @@ import User from '../models/User';
 import generateToken from '../utils/generateToken';
 import sendEmail from '../utils/sendEmail';
 import { AuthRequest } from '../middleware/auth';
+import { cloudinary } from '../config/cloudinary';
+import asyncHandler from '../utils/asyncHandler';
 
 // @desc    Sign in
 // @route   POST /api/auth/signin
@@ -51,6 +53,7 @@ export const signIn = async (req: Request, res: Response, next: NextFunction): P
       firstName: user.firstName,
       lastName: user.lastName,
       position: user.position,
+      profileImage: user.profileImage,
       club: user.club,
       memberProfile: user.memberProfile,
       district: user.district,
@@ -151,3 +154,21 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
   const token = generateToken(user._id.toString());
   res.status(200).json({ success: true, token, message: 'Password reset successful' });
 };
+
+// @desc    Upload profile picture
+// @route   PUT /api/auth/me/avatar
+// @access  Private
+export const uploadProfileImage = asyncHandler(async (req: AuthRequest, res: Response) => {
+  if (!req.file) {
+    res.status(400).json({ success: false, message: 'No image provided' });
+    return;
+  }
+
+  const b64 = Buffer.from(req.file.buffer).toString('base64');
+  const dataURI = `data:${req.file.mimetype};base64,${b64}`;
+  const result = await cloudinary.uploader.upload(dataURI, { folder: 'leo_moment/user-profiles' });
+
+  await User.findByIdAndUpdate(req.user!._id, { profileImage: result.secure_url });
+
+  res.json({ success: true, data: { profileImage: result.secure_url } });
+});

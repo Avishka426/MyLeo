@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { protect, authorize, districtScope } from '../middleware/auth';
 import asyncHandler from '../utils/asyncHandler';
+import upload from '../middleware/upload';
 import {
   getDistricts,
   getDistrict,
@@ -29,6 +30,6 @@ router.get('/:id', authorize('district_exco', 'district_member', 'multiple_exco'
 
 // Create / update — multiple_exco or system_admin only
 router.post('/', authorize('multiple_exco', 'system_admin'), asyncHandler(createDistrict as any));
-router.put('/:id', authorize('district_exco', 'multiple_exco', 'system_admin'), districtScope as any, asyncHandler(updateDistrict as any));
+router.put('/:id', authorize('district_exco', 'multiple_exco', 'system_admin'), districtScope as any, upload.single('logo'), asyncHandler(updateDistrict as any));
 
 export default router;

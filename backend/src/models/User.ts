@@ -35,6 +35,7 @@ export interface IUser extends Document {
   firstName?: string;
   lastName?: string;
   position?: string;
+  profileImage?: string;
   // Scope refs — only one of these is set depending on role level
   club?: mongoose.Types.ObjectId;
   district?: mongoose.Types.ObjectId;
@@ -70,9 +71,10 @@ const UserSchema = new Schema<IUser>(
       default: 'leo_member',
     },
     isActive: { type: Boolean, default: true },
-    firstName: { type: String, trim: true },
-    lastName:  { type: String, trim: true },
-    position:  { type: String, trim: true },
+    firstName:    { type: String, trim: true },
+    lastName:     { type: String, trim: true },
+    position:     { type: String, trim: true },
+    profileImage: { type: String },
     // Club-level scope
     club: { type: Schema.Types.ObjectId, ref: 'Club' },
     // District-level scope

@@ -6,6 +6,7 @@ export interface IDistrict extends Document {
   multipleDistrict: mongoose.Types.ObjectId;
   contactEmail: string;
   contactPhone?: string;
+  logo?: string;
   status: 'active' | 'inactive';
   description?: string;
   createdAt: Date;
@@ -38,6 +39,7 @@ const DistrictSchema = new Schema<IDistrict>(
       trim: true,
     },
     contactPhone: { type: String, trim: true },
+    logo: { type: String },
     status: {
       type: String,
       enum: ['active', 'inactive'],

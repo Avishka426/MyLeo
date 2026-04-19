@@ -5,6 +5,7 @@ import District from '../models/District';
 import Club from '../models/Club';
 import Project from '../models/Project';
 import asyncHandler from '../utils/asyncHandler';
+import { cloudinary } from '../config/cloudinary';
 
 // GET /api/multiple-districts  (system_admin only for list)
 export const getMultipleDistricts = asyncHandler(async (_req: AuthRequest, res: Response) => {
@@ -27,6 +28,12 @@ export const createMultipleDistrict = asyncHandler(async (req: AuthRequest, res:
 
 // PUT /api/multiple-districts/:id
 export const updateMultipleDistrict = asyncHandler(async (req: AuthRequest, res: Response) => {
+  if (req.file) {
+    const b64 = Buffer.from(req.file.buffer).toString('base64');
+    const dataURI = `data:${req.file.mimetype};base64,${b64}`;
+    const result = await cloudinary.uploader.upload(dataURI, { folder: 'leo_moment/multiple-districts' });
+    req.body.logo = result.secure_url;
+  }
   const md = await MultipleDistrict.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
   if (!md) { res.status(404).json({ success: false, message: 'Multiple district not found' }); return; }
   res.json({ success: true, data: md });

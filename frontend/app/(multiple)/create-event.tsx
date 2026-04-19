@@ -21,6 +21,7 @@ export default function CreateEventScreen() {
   const [day, setDay] = useState('');
   const [month, setMonth] = useState('');
   const [year, setYear] = useState(String(new Date().getFullYear()));
+  const [visibility, setVisibility] = useState<'own' | 'all'>('own');
   const [loading, setLoading] = useState(false);
 
   const inputStyle = {
@@ -40,7 +41,7 @@ export default function CreateEventScreen() {
 
     setLoading(true);
     try {
-      await api.post('/events', { title: title.trim(), description: description.trim() || undefined, eventDate: eventDate.toISOString() });
+      await api.post('/events', { title: title.trim(), description: description.trim() || undefined, eventDate: eventDate.toISOString(), visibility });
       Alert.alert('Success', 'Event created!', [{ text: 'OK', onPress: () => router.back() }]);
     } catch (err: any) {
       Alert.alert('Error', err?.response?.data?.message || 'Failed to create event');
@@ -81,6 +82,31 @@ export default function CreateEventScreen() {
           placeholder="What's happening? (optional)" placeholderTextColor={colors.textMuted}
           value={description} onChangeText={setDescription} multiline
         />
+
+        <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Visibility</Text>
+        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 14 }}>
+          {(['own', 'all'] as const).map((v) => {
+            const active = visibility === v;
+            const label = v === 'own' ? 'Our Multiple Only' : 'All Districts';
+            const icon = v === 'own' ? 'lock-closed-outline' : 'globe-outline';
+            return (
+              <TouchableOpacity
+                key={v}
+                onPress={() => setVisibility(v)}
+                style={{
+                  flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+                  gap: 6, paddingVertical: 11, borderRadius: radius.md, borderWidth: 1.5,
+                  borderColor: active ? colors.primary : colors.border,
+                  backgroundColor: active ? colors.primary + '18' : colors.card,
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons name={icon as any} size={15} color={active ? colors.primary : colors.textMuted} />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: active ? colors.primary : colors.textMuted }}>{label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
         <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Event Date *</Text>
         <View style={{ flexDirection: 'row', gap: 10, marginBottom: 14 }}>

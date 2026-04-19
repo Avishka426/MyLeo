@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  TextInput, Alert, KeyboardAvoidingView, Platform,
+  View, Text, ScrollView, TouchableOpacity, Image,
+  TextInput, Alert, KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../lib/api';
+import { ROLES } from '../lib/constants';
 
 const ROLE_LABEL: Record<string, string> = {
   leo_member:      'Leo Member',
@@ -19,11 +21,13 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 export default function ProfileScreen() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, refreshUser } = useAuth();
   const { colors, radius } = useTheme();
   const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
   const [pwLoading, setPwLoading] = useState(false);
   const [pwExpanded, setPwExpanded] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
 
   const initials = user?.memberProfile
     ? `${user.memberProfile.firstName[0]}${user.memberProfile.lastName[0]}`.toUpperCase()
@@ -36,6 +40,90 @@ export default function ProfileScreen() {
     : user?.firstName && user?.lastName
       ? `${user.firstName} ${user.lastName}`
       : user?.email;
+
+  const profileImageUrl = user?.profileImage || user?.memberProfile?.profileImage;
+
+  const pickAndUploadAvatar = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permission required', 'Allow photo library access to upload a profile picture.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (result.canceled) return;
+
+    const asset = result.assets[0];
+    const formData = new FormData();
+    formData.append('avatar', { uri: asset.uri, type: asset.mimeType ?? 'image/jpeg', name: 'avatar.jpg' } as any);
+
+    setAvatarUploading(true);
+    try {
+      await api.put('/auth/me/avatar', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await refreshUser();
+      Alert.alert('Success', 'Profile picture updated!');
+    } catch (err: any) {
+      Alert.alert('Error', err?.response?.data?.message || 'Upload failed');
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
+  const pickAndUploadEntityLogo = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permission required', 'Allow photo library access to upload a logo.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (result.canceled) return;
+
+    const asset = result.assets[0];
+    const formData = new FormData();
+    formData.append('logo', { uri: asset.uri, type: asset.mimeType ?? 'image/jpeg', name: 'logo.jpg' } as any);
+
+    setLogoUploading(true);
+    try {
+      if (user?.role === ROLES.EXCO || user?.role === ROLES.MEMBER) {
+        await api.put(`/clubs/${(user.club as any)?._id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      } else if (user?.role === ROLES.DISTRICT_EXCO) {
+        await api.put(`/districts/${(user as any).district?._id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      } else if (user?.role === ROLES.MULTIPLE_EXCO) {
+        await api.put(`/multiple-districts/${(user as any).multipleDistrict?._id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      }
+      await refreshUser();
+      Alert.alert('Success', 'Logo updated!');
+    } catch (err: any) {
+      Alert.alert('Error', err?.response?.data?.message || 'Upload failed');
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+  const isEntityExco = user?.role === ROLES.EXCO || user?.role === ROLES.DISTRICT_EXCO || user?.role === ROLES.MULTIPLE_EXCO;
+
+  const entityLogoUrl =
+    user?.role === ROLES.EXCO || user?.role === ROLES.MEMBER ? user?.club?.logo :
+    user?.role === ROLES.DISTRICT_EXCO ? (user as any)?.district?.logo :
+    user?.role === ROLES.MULTIPLE_EXCO ? (user as any)?.multipleDistrict?.logo : undefined;
+
+  const entityLabel =
+    user?.role === ROLES.EXCO || user?.role === ROLES.MEMBER ? 'Club Logo' :
+    user?.role === ROLES.DISTRICT_EXCO ? 'District Logo' :
+    user?.role === ROLES.MULTIPLE_EXCO ? 'Multiple District Logo' : '';
 
   const handleChangePassword = async () => {
     if (!pwForm.current || !pwForm.newPw || !pwForm.confirm) { Alert.alert('Error', 'Please fill in all fields'); return; }
@@ -74,13 +162,29 @@ export default function ProfileScreen() {
           alignItems: 'center', marginBottom: 16,
           borderWidth: 1, borderColor: colors.border,
         }}>
-          <View style={{
-            width: 80, height: 80, borderRadius: 40,
-            backgroundColor: colors.primary,
-            justifyContent: 'center', alignItems: 'center', marginBottom: 14,
-          }}>
-            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 28 }}>{initials}</Text>
-          </View>
+          {/* Avatar */}
+          <TouchableOpacity onPress={pickAndUploadAvatar} activeOpacity={0.8} style={{ marginBottom: 14 }}>
+            <View style={{ width: 90, height: 90, borderRadius: 45, overflow: 'hidden', backgroundColor: colors.primary }}>
+              {profileImageUrl ? (
+                <Image source={{ uri: profileImageUrl }} style={{ width: 90, height: 90 }} />
+              ) : (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ color: '#fff', fontWeight: '800', fontSize: 28 }}>{initials}</Text>
+                </View>
+              )}
+            </View>
+            <View style={{
+              position: 'absolute', bottom: 0, right: 0,
+              width: 28, height: 28, borderRadius: 14,
+              backgroundColor: colors.primary, borderWidth: 2, borderColor: colors.card,
+              justifyContent: 'center', alignItems: 'center',
+            }}>
+              {avatarUploading
+                ? <ActivityIndicator size="small" color="#fff" />
+                : <Ionicons name="camera" size={14} color="#fff" />}
+            </View>
+          </TouchableOpacity>
+
           <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text, marginBottom: 4 }}>{displayName}</Text>
           <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 12 }}>{user?.email}</Text>
           <View style={{ backgroundColor: colors.primary + '18', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 4, marginBottom: 10 }}>
@@ -113,6 +217,46 @@ export default function ProfileScreen() {
             </Text>
           )}
         </View>
+
+        {/* Entity logo upload (exco only) */}
+        {isEntityExco && (
+          <View style={{
+            backgroundColor: colors.card, borderRadius: radius.lg, marginBottom: 12,
+            borderWidth: 1, borderColor: colors.border, padding: 16,
+          }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textMuted, marginBottom: 12 }}>{entityLabel}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+              <View style={{ width: 64, height: 64, borderRadius: 12, overflow: 'hidden', backgroundColor: colors.primaryLight }}>
+                {entityLogoUrl ? (
+                  <Image source={{ uri: entityLogoUrl }} style={{ width: 64, height: 64 }} />
+                ) : (
+                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <Ionicons name="image-outline" size={26} color={colors.primary} />
+                  </View>
+                )}
+              </View>
+              <TouchableOpacity
+                onPress={pickAndUploadEntityLogo}
+                disabled={logoUploading}
+                style={{
+                  flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+                  gap: 8, paddingVertical: 12, borderRadius: radius.md,
+                  borderWidth: 1.5, borderColor: colors.primary,
+                  backgroundColor: colors.primary + '10',
+                  opacity: logoUploading ? 0.6 : 1,
+                }}
+                activeOpacity={0.7}
+              >
+                {logoUploading
+                  ? <ActivityIndicator size="small" color={colors.primary} />
+                  : <Ionicons name="cloud-upload-outline" size={18} color={colors.primary} />}
+                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.primary }}>
+                  {logoUploading ? 'Uploading…' : 'Upload Logo'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         {/* Change Password */}
         <View style={{
