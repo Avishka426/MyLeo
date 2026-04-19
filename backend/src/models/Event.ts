@@ -5,6 +5,7 @@ export interface IEvent extends Document {
   description?: string;
   images: string[];
   eventDate: Date;
+  visibility: 'own' | 'all';
   district?: mongoose.Types.ObjectId;
   multipleDistrict?: mongoose.Types.ObjectId;
   createdBy: mongoose.Types.ObjectId;
@@ -18,6 +19,7 @@ const EventSchema = new Schema<IEvent>(
     description: { type: String, trim: true },
     images: { type: [String], default: [] },
     eventDate: { type: Date, required: [true, 'Event date is required'] },
+    visibility: { type: String, enum: ['own', 'all'], default: 'own' },
     district: { type: Schema.Types.ObjectId, ref: 'District' },
     multipleDistrict: { type: Schema.Types.ObjectId, ref: 'MultipleDistrict' },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },

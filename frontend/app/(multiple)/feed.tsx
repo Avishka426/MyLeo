@@ -25,6 +25,7 @@ interface EventPost {
   description?: string;
   images: string[];
   eventDate: string;
+  visibility: 'own' | 'all';
   createdBy: { firstName?: string; lastName?: string; email: string };
 }
 
@@ -132,8 +133,18 @@ export default function MultipleFeedScreen() {
           <Text style={{ fontSize: 14, color: colors.textMuted, lineHeight: 20, marginBottom: 10 }}>{item.description}</Text>
         ) : null}
         <ImageGridViewer images={item.images ?? []} />
-        <View style={{ marginTop: 10 }}>
+        <View style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <CountdownBadge eventDate={item.eventDate} />
+          <View style={{
+            flexDirection: 'row', alignItems: 'center', gap: 4,
+            backgroundColor: item.visibility === 'all' ? colors.info + '22' : colors.primaryLight + '66',
+            borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3,
+          }}>
+            <Ionicons name={item.visibility === 'all' ? 'globe-outline' : 'lock-closed-outline'} size={11} color={item.visibility === 'all' ? colors.info : colors.primary} />
+            <Text style={{ fontSize: 11, fontWeight: '700', color: item.visibility === 'all' ? colors.info : colors.primary }}>
+              {item.visibility === 'all' ? 'All Districts' : 'Our District'}
+            </Text>
+          </View>
         </View>
       </Card>
     );

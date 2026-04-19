@@ -10,14 +10,19 @@ export const getEvents = asyncHandler(async (req: AuthRequest, res: Response) =>
   const level = ROLE_LEVEL[user.role];
   const now = new Date();
 
-  const filter: Record<string, any> = { eventDate: { $gte: now } };
+  const baseFilter: Record<string, any> = { eventDate: { $gte: now } };
+  let filter: Record<string, any>;
 
   if (level === 'district') {
-    filter.district = (user.district as any)?._id ?? user.district;
+    const districtId = (user.district as any)?._id ?? user.district;
+    filter = { ...baseFilter, $or: [{ visibility: 'all' }, { district: districtId }] };
   } else if (level === 'multiple') {
-    filter.multipleDistrict = (user.multipleDistrict as any)?._id ?? user.multipleDistrict;
+    const mdId = (user.multipleDistrict as any)?._id ?? user.multipleDistrict;
+    filter = { ...baseFilter, $or: [{ visibility: 'all' }, { multipleDistrict: mdId }] };
+  } else {
+    // system_admin: sees everything
+    filter = baseFilter;
   }
-  // system_admin: no scope filter → sees all
 
   const events = await Event.find(filter)
     .populate('createdBy', 'firstName lastName email')
@@ -29,7 +34,7 @@ export const getEvents = asyncHandler(async (req: AuthRequest, res: Response) =>
 // POST /api/events  — district_exco / multiple_exco only
 export const createEvent = asyncHandler(async (req: AuthRequest, res: Response) => {
   const user = req.user!;
-  const { title, description, eventDate, images } = req.body;
+  const { title, description, eventDate, images, visibility } = req.body;
 
   if (!title || !eventDate) {
     res.status(400).json({ success: false, message: 'title and eventDate are required' });
@@ -48,6 +53,7 @@ export const createEvent = asyncHandler(async (req: AuthRequest, res: Response) 
     description,
     eventDate: parsedDate,
     images: images ?? [],
+    visibility: visibility === 'all' ? 'all' : 'own',
     createdBy: user._id,
   };
 
