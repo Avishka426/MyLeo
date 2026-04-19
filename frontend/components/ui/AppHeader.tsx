@@ -19,6 +19,8 @@ export function AppHeader() {
 
   const goToProfile = () => {
     if (user?.role === ROLES.MEMBER) router.push('/(member)/profile');
+    else if (user?.role === ROLES.DISTRICT_MEMBER || user?.role === ROLES.DISTRICT_EXCO) router.push('/(district)/profile');
+    else if (user?.role === ROLES.MULTIPLE_MEMBER || user?.role === ROLES.MULTIPLE_EXCO) router.push('/(multiple)/profile');
     else router.push('/(exco)/profile');
   };
 

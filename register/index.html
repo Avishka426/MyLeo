@@ -12,30 +12,26 @@
       --text: #e8edf3; --muted: #7a90a8; --success: #27AE60; --error: #e74c3c;
       --radius: 12px;
     }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--bg); color: var(--text);
       min-height: 100vh; display: flex; flex-direction: column;
       align-items: center; padding: 32px 16px 64px;
     }
-
-    /* Header */
     .header { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
     .header-icon { width: 48px; height: 48px; background: var(--primary); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
     .header h1 { font-size: 24px; font-weight: 800; }
     .header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
-
-    /* Card */
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; width: 100%; max-width: 560px; }
-    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-    .card-sub   { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; width: 100%; max-width: 620px; }
+    .card-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
 
     /* Tabs */
-    .tabs { display: flex; gap: 4px; margin-bottom: 28px; background: var(--surface2); border-radius: 10px; padding: 4px; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 28px; background: var(--surface2); border-radius: 10px; padding: 4px; flex-wrap: wrap; }
     .tab {
-      flex: 1; padding: 9px; text-align: center; font-size: 13px; font-weight: 700;
+      flex: 1; min-width: 70px; padding: 9px 6px; text-align: center; font-size: 12px; font-weight: 700;
       border-radius: 8px; cursor: pointer; color: var(--muted); transition: all .15s;
-      border: none; background: transparent;
+      border: none; background: transparent; white-space: nowrap;
     }
     .tab.active { background: var(--primary); color: #fff; }
 
@@ -62,7 +58,6 @@
     .btn:disabled { opacity: .55; cursor: not-allowed; }
     .btn.secondary { background: transparent; border: 1px solid var(--border); color: var(--muted); margin-top: 0; }
     .btn.secondary:hover { border-color: var(--primary); color: var(--text); }
-    .btn.danger { background: var(--error); }
 
     /* Alert */
     .alert { border-radius: 8px; padding: 11px 14px; font-size: 13px; margin-bottom: 16px; display: none; }
@@ -71,23 +66,25 @@
     .alert.show    { display: block; }
 
     /* Token bar */
-    .token-bar { display: flex; align-items: center; gap: 10px; background: var(--surface2); border: 1px solid var(--success); border-radius: 8px; padding: 10px 14px; margin-bottom: 24px; font-size: 13px; color: var(--success); }
+    .token-bar { display: flex; align-items: center; gap: 10px; background: var(--surface2); border: 1px solid var(--success); border-radius: 8px; padding: 10px 14px; margin-bottom: 24px; font-size: 13px; color: var(--success); flex-wrap: wrap; }
 
     /* Step */
     .step { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 20px; }
-    .step-dot { width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+    .step-dot { width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
 
-    /* Divider */
     hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
 
-    /* Clubs list */
-    .club-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
-    .club-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
-    .club-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-    .club-info { flex: 1; min-width: 0; }
-    .club-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .club-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .club-badge { font-size: 10px; font-weight: 700; background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 20px; }
+    /* Item list (clubs / districts / MDs) */
+    .item-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+    .item-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+    .item-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .item-info { flex: 1; min-width: 0; }
+    .item-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .item-badge { font-size: 10px; font-weight: 700; background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+
+    /* Section header */
+    .section-hdr { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
 
     /* Cred card */
     .cred-card { background: var(--surface2); border: 1px solid var(--accent); border-radius: var(--radius); padding: 22px; margin-top: 20px; display: none; }
@@ -99,6 +96,10 @@
     .cred-val { color: var(--text); font-weight: 700; text-align: right; word-break: break-all; max-width: 60%; }
     .cred-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
     .cred-actions .btn { width: auto; padding: 9px 18px; font-size: 13px; margin-top: 0; }
+
+    /* Role context panels */
+    .role-panel { display: none; }
+    .role-panel.active { display: block; }
 
     /* Spinner */
     .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
@@ -113,7 +114,7 @@
   <div class="header-icon">🦁</div>
   <div>
     <h1>MyLeo Admin</h1>
-    <p>Club &amp; Exco Management Portal</p>
+    <p>Club, District &amp; Multiple District Portal</p>
   </div>
 </div>
 
@@ -143,12 +144,14 @@
 
   <div class="tabs">
     <button class="tab active" onclick="showTab('clubs')">🏛 Clubs</button>
-    <button class="tab"        onclick="showTab('register')">➕ Register Exco</button>
+    <button class="tab"        onclick="showTab('districts')">🗺 Districts</button>
+    <button class="tab"        onclick="showTab('multiple')">🌐 Multiple</button>
+    <button class="tab"        onclick="showTab('register')">➕ Register</button>
   </div>
 
-  <!-- ── Tab: Clubs ── -->
+  <!-- ══ Tab: Clubs ══ -->
   <div id="tabClubs">
-    <p class="card-sub" style="margin-bottom:18px;">Create a new club or view existing ones.</p>
+    <p class="card-sub">Create clubs and assign them to a district.</p>
     <div id="clubAlert" class="alert"></div>
 
     <div class="row">
@@ -164,7 +167,9 @@
     <div class="row">
       <div class="field">
         <label>District *</label>
-        <input type="text" id="clubDistrict" placeholder="District 306 B2" />
+        <select id="clubDistrictSelect">
+          <option value="">— Select a district —</option>
+        </select>
       </div>
       <div class="field">
         <label>Contact Email *</label>
@@ -178,68 +183,202 @@
     <button class="btn" id="createClubBtn" onclick="handleCreateClub()">Create Club</button>
 
     <hr />
-    <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;">EXISTING CLUBS</div>
-    <div id="clubList" class="club-list">
+    <div class="section-hdr">Existing Clubs</div>
+    <div id="clubList" class="item-list">
       <div style="color:var(--muted);font-size:13px;">Loading…</div>
     </div>
   </div>
 
-  <!-- ── Tab: Register Exco ── -->
+  <!-- ══ Tab: Districts ══ -->
+  <div id="tabDistricts" style="display:none;">
+    <p class="card-sub">Create districts and assign them to a multiple district.</p>
+    <div id="districtAlert" class="alert"></div>
+
+    <div class="row">
+      <div class="field">
+        <label>District Name *</label>
+        <input type="text" id="districtName" placeholder="District 306 B1" />
+      </div>
+      <div class="field">
+        <label>District Code *</label>
+        <input type="text" id="districtCode" placeholder="306B1" style="text-transform:uppercase" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Multiple District *</label>
+        <select id="districtMDSelect">
+          <option value="">— Select multiple district —</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Contact Email *</label>
+        <input type="email" id="districtEmail" placeholder="district@leo.org" />
+      </div>
+    </div>
+    <button class="btn" id="createDistrictBtn" onclick="handleCreateDistrict()">Create District</button>
+
+    <hr />
+    <div class="section-hdr">Existing Districts</div>
+    <div id="districtList" class="item-list">
+      <div style="color:var(--muted);font-size:13px;">Loading…</div>
+    </div>
+  </div>
+
+  <!-- ══ Tab: Multiple Districts ══ -->
+  <div id="tabMultiple" style="display:none;">
+    <p class="card-sub">Create and manage multiple districts (MD).</p>
+    <div id="mdAlert" class="alert"></div>
+
+    <div class="row">
+      <div class="field">
+        <label>MD Name *</label>
+        <input type="text" id="mdName" placeholder="Multiple District 306" />
+      </div>
+      <div class="field">
+        <label>MD Code *</label>
+        <input type="text" id="mdCode" placeholder="MD306" style="text-transform:uppercase" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Contact Email *</label>
+      <input type="email" id="mdEmail" placeholder="md306@leo.org" />
+    </div>
+    <button class="btn" id="createMDBtn" onclick="handleCreateMD()">Create Multiple District</button>
+
+    <hr />
+    <div class="section-hdr">Existing Multiple Districts</div>
+    <div id="mdList" class="item-list">
+      <div style="color:var(--muted);font-size:13px;">Loading…</div>
+    </div>
+  </div>
+
+  <!-- ══ Tab: Register ══ -->
   <div id="tabRegister" style="display:none;">
-    <p class="card-sub" style="margin-bottom:18px;">Register a new exco member for any club.</p>
+    <p class="card-sub">Register a member at any level of the Leo hierarchy.</p>
     <div id="regAlert" class="alert"></div>
 
+    <!-- Role selector -->
     <div class="field">
-      <label>Club *</label>
-      <select id="clubSelect">
-        <option value="">— Select a club —</option>
+      <label>Role *</label>
+      <select id="roleSelect" onchange="handleRoleChange()">
+        <option value="">— Select a role —</option>
+        <optgroup label="Club Level">
+          <option value="club_exco">Club Exco</option>
+          <option value="leo_member">Leo Member</option>
+        </optgroup>
+        <optgroup label="District Level">
+          <option value="district_exco">District Exco</option>
+          <option value="district_member">District Member</option>
+        </optgroup>
+        <optgroup label="Multiple District Level">
+          <option value="multiple_exco">Multiple District Exco</option>
+          <option value="multiple_member">Multiple District Member</option>
+        </optgroup>
       </select>
     </div>
-    <div class="row">
-      <div class="field">
-        <label>First Name *</label>
-        <input type="text" id="firstName" placeholder="John" />
-      </div>
-      <div class="field">
-        <label>Last Name *</label>
-        <input type="text" id="lastName" placeholder="Smith" />
-      </div>
-    </div>
-    <div class="field">
-      <label>Email Address *</label>
-      <input type="email" id="memberEmail" placeholder="john@leo.org" />
-    </div>
-    <div class="row">
-      <div class="field">
-        <label>Password *</label>
-        <input type="text" id="memberPassword" placeholder="Temp password" />
-      </div>
-      <div class="field">
-        <label>Phone (optional)</label>
-        <input type="tel" id="memberPhone" placeholder="+94 77 000 0000" />
-      </div>
-    </div>
-    <div class="field">
-      <label>Exco Position *</label>
-      <select id="positionSelect">
-        <option>President</option>
-        <option>Vice President</option>
-        <option>Secretary</option>
-        <option>Assistant Secretary</option>
-        <option>Treasurer</option>
-        <option>Assistant Treasurer</option>
-      </select>
-    </div>
-    <button class="btn" id="registerBtn" onclick="handleRegister()">Register Exco Member</button>
 
-    <!-- Credentials display -->
+    <!-- Club-level fields -->
+    <div id="panelClub" class="role-panel">
+      <div class="field">
+        <label>Club *</label>
+        <select id="clubSelect">
+          <option value="">— Select a club —</option>
+        </select>
+      </div>
+      <div class="field" id="positionField">
+        <label>Exco Position *</label>
+        <select id="positionSelect">
+          <option>President</option>
+          <option>Vice President</option>
+          <option>Secretary</option>
+          <option>Assistant Secretary</option>
+          <option>Treasurer</option>
+          <option>Assistant Treasurer</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- District-level fields -->
+    <div id="panelDistrict" class="role-panel">
+      <div class="field">
+        <label>District *</label>
+        <select id="regDistrictSelect">
+          <option value="">— Select a district —</option>
+        </select>
+      </div>
+      <div class="field" id="districtPositionField" style="display:none;">
+        <label>Exco Position *</label>
+        <select id="districtPositionSelect">
+          <option value="President">President</option>
+          <option value="Vice President">Vice President</option>
+          <option value="Secretary">Secretary</option>
+          <option value="Assistant Secretary">Assistant Secretary</option>
+          <option value="Treasurer">Treasurer</option>
+          <option value="Assistant Treasurer">Assistant Treasurer</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Multiple-level fields -->
+    <div id="panelMultiple" class="role-panel">
+      <div class="field">
+        <label>Multiple District *</label>
+        <select id="regMDSelect">
+          <option value="">— Select a multiple district —</option>
+        </select>
+      </div>
+      <div class="field" id="multiplePositionField" style="display:none;">
+        <label>Exco Position *</label>
+        <select id="multiplePositionSelect">
+          <option value="President">President</option>
+          <option value="Vice President">Vice President</option>
+          <option value="Secretary">Secretary</option>
+          <option value="Assistant Secretary">Assistant Secretary</option>
+          <option value="Treasurer">Treasurer</option>
+          <option value="Assistant Treasurer">Assistant Treasurer</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Common fields -->
+    <div id="commonFields" style="display:none;">
+      <div class="row">
+        <div class="field">
+          <label>First Name *</label>
+          <input type="text" id="firstName" placeholder="John" />
+        </div>
+        <div class="field">
+          <label>Last Name *</label>
+          <input type="text" id="lastName" placeholder="Smith" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Email Address *</label>
+        <input type="email" id="memberEmail" placeholder="john@leo.org" />
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Password *</label>
+          <input type="text" id="memberPassword" placeholder="Temp password" />
+        </div>
+        <div class="field">
+          <label>Phone (optional)</label>
+          <input type="tel" id="memberPhone" placeholder="+94 77 000 0000" />
+        </div>
+      </div>
+      <button class="btn" id="registerBtn" onclick="handleRegister()">Register Member</button>
+    </div>
+
+    <!-- Credentials card -->
     <div class="cred-card" id="credCard">
       <div class="cred-title">🎉 Registered — share these credentials</div>
-      <div class="cred-row"><span class="cred-key">Name</span>     <span class="cred-val" id="cName"></span></div>
-      <div class="cred-row"><span class="cred-key">Club</span>     <span class="cred-val" id="cClub"></span></div>
-      <div class="cred-row"><span class="cred-key">Position</span> <span class="cred-val" id="cPosition"></span></div>
-      <div class="cred-row"><span class="cred-key">Email</span>    <span class="cred-val" id="cEmail"></span></div>
-      <div class="cred-row"><span class="cred-key">Password</span> <span class="cred-val" id="cPassword"></span></div>
+      <div class="cred-row"><span class="cred-key">Name</span>       <span class="cred-val" id="cName"></span></div>
+      <div class="cred-row"><span class="cred-key">Role</span>       <span class="cred-val" id="cRole"></span></div>
+      <div class="cred-row"><span class="cred-key">Assigned To</span><span class="cred-val" id="cAssigned"></span></div>
+      <div class="cred-row" id="cPositionRow"><span class="cred-key">Position</span><span class="cred-val" id="cPosition"></span></div>
+      <div class="cred-row"><span class="cred-key">Email</span>      <span class="cred-val" id="cEmail"></span></div>
+      <div class="cred-row"><span class="cred-key">Password</span>   <span class="cred-val" id="cPassword"></span></div>
       <div class="cred-actions">
         <button class="btn" onclick="copyCredentials()">📋 Copy</button>
         <button class="btn secondary" onclick="resetRegForm()">+ Another</button>
@@ -251,20 +390,24 @@
 <script>
   const API = 'http://localhost:3000/api';
   let token = localStorage.getItem('leo_admin_token');
-  let clubs  = [];
+  let clubs = [], districts = [], multipleDistricts = [];
   let lastCred = null;
 
+  const ROLE_LABELS = {
+    club_exco: 'Club Exco', leo_member: 'Leo Member',
+    district_exco: 'District Exco', district_member: 'District Member',
+    multiple_exco: 'Multiple District Exco', multiple_member: 'Multiple District Member',
+  };
+
   window.onload = () => {
-    if (token) { showMainPanel(); loadClubs(); }
+    if (token) { showMainPanel(); loadAll(); }
     generatePassword();
   };
 
   // ── Auth ──────────────────────────────────────────────────────
   async function handleLogin() {
-    const email    = v('adminEmail');
-    const password = v('adminPassword');
-    const btn      = el('loginBtn');
-    const alert    = el('loginAlert');
+    const email = v('adminEmail'), password = v('adminPassword');
+    const btn = el('loginBtn'), alert = el('loginAlert');
     if (!email || !password) return showAlert(alert, 'Enter email and password.');
     setLoading(btn, true, 'Signing in…');
     try {
@@ -274,7 +417,7 @@
       localStorage.setItem('leo_admin_token', token);
       el('adminEmailDisplay').textContent = email;
       showMainPanel();
-      loadClubs();
+      loadAll();
     } catch (e) {
       showAlert(alert, e.message);
     } finally {
@@ -285,27 +428,54 @@
   function handleLogout() {
     token = null;
     localStorage.removeItem('leo_admin_token');
-    el('mainPanel').style.display  = 'none';
+    el('mainPanel').style.display = 'none';
     el('loginPanel').style.display = 'block';
-    el('adminEmail').value = '';
-    el('adminPassword').value = '';
+    el('adminEmail').value = el('adminPassword').value = '';
   }
 
   function showMainPanel() {
     el('loginPanel').style.display = 'none';
-    el('mainPanel').style.display  = 'block';
+    el('mainPanel').style.display = 'block';
   }
 
-  // ── Tabs ─────────────────────────────────────────────────────
+  // ── Tabs ──────────────────────────────────────────────────────
+  const TAB_IDS = { clubs: 'tabClubs', districts: 'tabDistricts', multiple: 'tabMultiple', register: 'tabRegister' };
+
   function showTab(name) {
-    el('tabClubs').style.display    = name === 'clubs'    ? 'block' : 'none';
-    el('tabRegister').style.display = name === 'register' ? 'block' : 'none';
+    Object.values(TAB_IDS).forEach(id => el(id).style.display = 'none');
+    el(TAB_IDS[name]).style.display = 'block';
     document.querySelectorAll('.tab').forEach((t, i) => {
-      t.classList.toggle('active', (name === 'clubs' && i === 0) || (name === 'register' && i === 1));
+      t.classList.toggle('active', i === Object.keys(TAB_IDS).indexOf(name));
     });
   }
 
-  // ── Load clubs ───────────────────────────────────────────────
+  // ── Load all data ─────────────────────────────────────────────
+  async function loadAll() {
+    await Promise.all([loadMDs(), loadDistricts(), loadClubs()]);
+  }
+
+  async function loadMDs() {
+    try {
+      const data = await req('GET', '/multiple-districts');
+      multipleDistricts = data.data;
+      renderMDList();
+      renderMDSelects();
+    } catch (e) {
+      el('mdList').innerHTML = `<div style="color:var(--error);font-size:13px;">Failed to load: ${e.message}</div>`;
+    }
+  }
+
+  async function loadDistricts() {
+    try {
+      const data = await req('GET', '/districts');
+      districts = data.data;
+      renderDistrictList();
+      renderDistrictSelects();
+    } catch (e) {
+      el('districtList').innerHTML = `<div style="color:var(--error);font-size:13px;">Failed to load: ${e.message}</div>`;
+    }
+  }
+
   async function loadClubs() {
     try {
       const data = await req('GET', '/clubs');
@@ -313,23 +483,67 @@
       renderClubList();
       renderClubSelect();
     } catch (e) {
-      el('clubList').innerHTML = `<div style="color:var(--error);font-size:13px;">Failed to load clubs: ${e.message}</div>`;
+      el('clubList').innerHTML = `<div style="color:var(--error);font-size:13px;">Failed to load: ${e.message}</div>`;
     }
+  }
+
+  // ── Render lists ──────────────────────────────────────────────
+  function renderMDList() {
+    const list = el('mdList');
+    if (!multipleDistricts.length) { list.innerHTML = '<div style="color:var(--muted);font-size:13px;">No multiple districts yet. Create one above.</div>'; return; }
+    list.innerHTML = multipleDistricts.map(m => `
+      <div class="item-card">
+        <div class="item-icon">🌐</div>
+        <div class="item-info">
+          <div class="item-name">${m.name}</div>
+          <div class="item-meta">${m.contactEmail || '—'}</div>
+        </div>
+        <span class="item-badge">${m.code}</span>
+      </div>`).join('');
+  }
+
+  function renderDistrictList() {
+    const list = el('districtList');
+    if (!districts.length) { list.innerHTML = '<div style="color:var(--muted);font-size:13px;">No districts yet. Create one above.</div>'; return; }
+    list.innerHTML = districts.map(d => `
+      <div class="item-card">
+        <div class="item-icon">🗺</div>
+        <div class="item-info">
+          <div class="item-name">${d.name}</div>
+          <div class="item-meta">${d.multipleDistrict?.name || '—'} &nbsp;·&nbsp; ${d.contactEmail || '—'}</div>
+        </div>
+        <span class="item-badge">${d.code}</span>
+      </div>`).join('');
   }
 
   function renderClubList() {
     const list = el('clubList');
     if (!clubs.length) { list.innerHTML = '<div style="color:var(--muted);font-size:13px;">No clubs yet. Create one above.</div>'; return; }
-    list.innerHTML = clubs.map(c => `
-      <div class="club-item">
-        <div class="club-icon">🏛</div>
-        <div class="club-info">
-          <div class="club-name">${c.name}</div>
-          <div class="club-meta">${c.district} &nbsp;·&nbsp; ${c.contactEmail}</div>
+    list.innerHTML = clubs.map(c => {
+      const distName = typeof c.district === 'object' ? c.district?.name : (districts.find(d => d._id === c.district)?.name || c.district || '—');
+      return `
+      <div class="item-card">
+        <div class="item-icon">🏛</div>
+        <div class="item-info">
+          <div class="item-name">${c.name}</div>
+          <div class="item-meta">${distName} &nbsp;·&nbsp; ${c.contactEmail}</div>
         </div>
-        <span class="club-badge">${c.clubCode}</span>
-      </div>
-    `).join('');
+        <span class="item-badge">${c.clubCode}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Render selects ────────────────────────────────────────────
+  function renderMDSelects() {
+    const opts = '<option value="">— Select multiple district —</option>' +
+      multipleDistricts.map(m => `<option value="${m._id}">${m.name} (${m.code})</option>`).join('');
+    ['districtMDSelect', 'regMDSelect'].forEach(id => { if (el(id)) el(id).innerHTML = opts; });
+  }
+
+  function renderDistrictSelects() {
+    const opts = '<option value="">— Select a district —</option>' +
+      districts.map(d => `<option value="${d._id}">${d.name} (${d.code})</option>`).join('');
+    ['clubDistrictSelect', 'regDistrictSelect'].forEach(id => { if (el(id)) el(id).innerHTML = opts; });
   }
 
   function renderClubSelect() {
@@ -343,23 +557,60 @@
     });
   }
 
-  // ── Create club ──────────────────────────────────────────────
-  async function handleCreateClub() {
-    const name     = v('clubName');
-    const clubCode = v('clubCode').toUpperCase();
-    const district = v('clubDistrict');
-    const contactEmail = v('clubEmail');
-    const description  = v('clubDesc');
-    const btn   = el('createClubBtn');
-    const alert = el('clubAlert');
+  // ── Create Multiple District ──────────────────────────────────
+  async function handleCreateMD() {
+    const name = v('mdName'), code = v('mdCode').toUpperCase(), contactEmail = v('mdEmail');
+    const btn = el('createMDBtn'), alert = el('mdAlert');
     alert.className = 'alert';
+    if (!name || !code || !contactEmail) return showAlert(alert, 'Name, code and email are required.');
+    setLoading(btn, true, 'Creating…');
+    try {
+      await req('POST', '/multiple-districts', { name, code, contactEmail, status: 'active' });
+      showAlert(alert, `✅ "${name}" created successfully.`, 'success');
+      el('mdName').value = el('mdCode').value = el('mdEmail').value = '';
+      await loadMDs();
+    } catch (e) {
+      showAlert(alert, e.message);
+    } finally {
+      setLoading(btn, false, 'Create Multiple District');
+    }
+  }
 
+  // ── Create District ───────────────────────────────────────────
+  async function handleCreateDistrict() {
+    const name = v('districtName'), code = v('districtCode').toUpperCase();
+    const multipleDistrict = v('districtMDSelect'), contactEmail = v('districtEmail');
+    const btn = el('createDistrictBtn'), alert = el('districtAlert');
+    alert.className = 'alert';
+    if (!name || !code || !multipleDistrict || !contactEmail) return showAlert(alert, 'Name, code, multiple district and email are required.');
+    setLoading(btn, true, 'Creating…');
+    try {
+      await req('POST', '/districts', { name, code, multipleDistrict, contactEmail, status: 'active' });
+      showAlert(alert, `✅ "${name}" created successfully.`, 'success');
+      el('districtName').value = el('districtCode').value = el('districtEmail').value = '';
+      el('districtMDSelect').value = '';
+      await loadDistricts();
+    } catch (e) {
+      showAlert(alert, e.message);
+    } finally {
+      setLoading(btn, false, 'Create District');
+    }
+  }
+
+  // ── Create Club ───────────────────────────────────────────────
+  async function handleCreateClub() {
+    const name = v('clubName'), clubCode = v('clubCode').toUpperCase();
+    const district = v('clubDistrictSelect'), contactEmail = v('clubEmail');
+    const description = v('clubDesc');
+    const btn = el('createClubBtn'), alert = el('clubAlert');
+    alert.className = 'alert';
     if (!name || !clubCode || !district || !contactEmail) return showAlert(alert, 'Name, code, district and email are required.');
     setLoading(btn, true, 'Creating…');
     try {
       await req('POST', '/clubs', { name, clubCode, district, contactEmail, description, status: 'active' });
       showAlert(alert, `✅ "${name}" created successfully.`, 'success');
-      el('clubName').value = el('clubCode').value = el('clubDistrict').value = el('clubEmail').value = el('clubDesc').value = '';
+      el('clubName').value = el('clubCode').value = el('clubEmail').value = el('clubDesc').value = '';
+      el('clubDistrictSelect').value = '';
       loadClubs();
     } catch (e) {
       showAlert(alert, e.message);
@@ -368,7 +619,27 @@
     }
   }
 
-  // ── Register exco ────────────────────────────────────────────
+  // ── Role selection ────────────────────────────────────────────
+  function handleRoleChange() {
+    const role = v('roleSelect');
+    const isClub     = role === 'club_exco' || role === 'leo_member';
+    const isDistrict = role === 'district_exco' || role === 'district_member';
+    const isMultiple = role === 'multiple_exco' || role === 'multiple_member';
+
+    el('panelClub').classList.toggle('active', isClub);
+    el('panelDistrict').classList.toggle('active', isDistrict);
+    el('panelMultiple').classList.toggle('active', isMultiple);
+    el('commonFields').style.display = role ? 'block' : 'none';
+
+    el('positionField').style.display         = role === 'club_exco'      ? 'block' : 'none';
+    el('districtPositionField').style.display = role === 'district_exco'  ? 'block' : 'none';
+    el('multiplePositionField').style.display = role === 'multiple_exco'  ? 'block' : 'none';
+
+    const btn = el('registerBtn');
+    if (btn) btn.textContent = `Register ${ROLE_LABELS[role] || 'Member'}`;
+  }
+
+  // ── Register member ───────────────────────────────────────────
   function generatePassword() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
     let pw = '';
@@ -378,49 +649,86 @@
   }
 
   async function handleRegister() {
-    const clubId    = v('clubSelect');
+    const role      = v('roleSelect');
     const firstName = v('firstName');
     const lastName  = v('lastName');
     const email     = v('memberEmail');
     const password  = v('memberPassword');
     const phone     = v('memberPhone');
-    const position  = v('positionSelect');
     const btn   = el('registerBtn');
     const alert = el('regAlert');
     alert.className = 'alert';
 
-    if (!clubId)    return showAlert(alert, 'Select a club.');
+    if (!role)     return showAlert(alert, 'Select a role.');
     if (!firstName || !lastName) return showAlert(alert, 'First and last name are required.');
-    if (!email)     return showAlert(alert, 'Email is required.');
+    if (!email)    return showAlert(alert, 'Email is required.');
     if (!password || password.length < 6) return showAlert(alert, 'Password must be at least 6 characters.');
+
+    const isClub     = role === 'club_exco' || role === 'leo_member';
+    const isDistrict = role === 'district_exco' || role === 'district_member';
+    const isMultiple = role === 'multiple_exco' || role === 'multiple_member';
 
     setLoading(btn, true, 'Registering…');
     try {
-      await req('POST', '/members', { club: clubId, firstName, lastName, email, password, phone, position });
-      const club = clubs.find(c => c._id === clubId);
-      lastCred = { name: `${firstName} ${lastName}`, club: club?.name || '', position, email, password };
+      let assignedName = '';
+
+      if (isClub) {
+        const clubId   = v('clubSelect');
+        const position = v('positionSelect');
+        if (!clubId) { showAlert(alert, 'Select a club.'); return; }
+        await req('POST', '/members', { club: clubId, firstName, lastName, email, password, phone, position: role === 'club_exco' ? position : 'Member' });
+        const club = clubs.find(c => c._id === clubId);
+        assignedName = club?.name || '';
+        lastCred = { name: `${firstName} ${lastName}`, role: ROLE_LABELS[role], assigned: assignedName, position: role === 'club_exco' ? position : null, email, password };
+
+      } else if (isDistrict) {
+        const districtId = v('regDistrictSelect');
+        if (!districtId) { showAlert(alert, 'Select a district.'); return; }
+        const position = role === 'district_exco' ? v('districtPositionSelect') : undefined;
+        await req('POST', '/admin/create-user', { email, password, firstName, lastName, role, district: districtId, phone, position });
+        const district = districts.find(d => d._id === districtId);
+        assignedName = district?.name || '';
+        lastCred = { name: `${firstName} ${lastName}`, role: ROLE_LABELS[role], assigned: assignedName, position: position || null, email, password };
+
+      } else if (isMultiple) {
+        const mdId = v('regMDSelect');
+        if (!mdId) { showAlert(alert, 'Select a multiple district.'); return; }
+        const position = role === 'multiple_exco' ? v('multiplePositionSelect') : undefined;
+        await req('POST', '/admin/create-user', { email, password, firstName, lastName, role, multipleDistrict: mdId, phone, position });
+        const md = multipleDistricts.find(m => m._id === mdId);
+        assignedName = md?.name || '';
+        lastCred = { name: `${firstName} ${lastName}`, role: ROLE_LABELS[role], assigned: assignedName, position: position || null, email, password };
+      }
+
       showCredentials(lastCred);
-      showAlert(alert, `✅ ${firstName} ${lastName} registered. Credentials sent to ${email}.`, 'success');
+      showAlert(alert, `✅ ${firstName} ${lastName} registered successfully.`, 'success');
     } catch (e) {
       showAlert(alert, e.message);
     } finally {
-      setLoading(btn, false, 'Register Exco Member');
+      if (btn) setLoading(btn, false, `Register ${ROLE_LABELS[role] || 'Member'}`);
     }
   }
 
-  function showCredentials({ name, club, position, email, password }) {
+  function showCredentials({ name, role, assigned, position, email, password }) {
     el('cName').textContent     = name;
-    el('cClub').textContent     = club;
-    el('cPosition').textContent = position;
+    el('cRole').textContent     = role;
+    el('cAssigned').textContent = assigned;
     el('cEmail').textContent    = email;
     el('cPassword').textContent = password;
-    el('credCard').className    = 'cred-card show';
+    if (position) {
+      el('cPosition').textContent = position;
+      el('cPositionRow').style.display = 'flex';
+    } else {
+      el('cPositionRow').style.display = 'none';
+    }
+    el('credCard').className = 'cred-card show';
     el('credCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   function copyCredentials() {
     if (!lastCred) return;
-    const t = `MyLeo Exco Credentials\n${'─'.repeat(24)}\nName:     ${lastCred.name}\nClub:     ${lastCred.club}\nPosition: ${lastCred.position}\nEmail:    ${lastCred.email}\nPassword: ${lastCred.password}\n${'─'.repeat(24)}\nDownload the MyLeo app and sign in with the above credentials.`;
+    const pos = lastCred.position ? `\nPosition: ${lastCred.position}` : '';
+    const t = `MyLeo Credentials\n${'─'.repeat(24)}\nName:       ${lastCred.name}\nRole:       ${lastCred.role}\nAssigned:   ${lastCred.assigned}${pos}\nEmail:      ${lastCred.email}\nPassword:   ${lastCred.password}\n${'─'.repeat(24)}\nDownload the MyLeo app and sign in with the above credentials.`;
     navigator.clipboard.writeText(t).then(() => {
       event.target.textContent = '✅ Copied!';
       setTimeout(() => event.target.textContent = '📋 Copy', 2000);
@@ -429,18 +737,26 @@
 
   function resetRegForm() {
     ['firstName','lastName','memberEmail','memberPhone'].forEach(id => el(id).value = '');
+    el('roleSelect').value = '';
     el('clubSelect').value = '';
+    el('regDistrictSelect').value = '';
+    el('regMDSelect').value = '';
+    el('panelClub').classList.remove('active');
+    el('panelDistrict').classList.remove('active');
+    el('panelMultiple').classList.remove('active');
+    el('commonFields').style.display = 'none';
     el('credCard').className = 'cred-card';
     el('regAlert').className = 'alert';
     generatePassword();
   }
 
-  // ── Helpers ──────────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────
   async function req(method, path, body, auth = true) {
     const headers = { 'Content-Type': 'application/json' };
     if (auth) headers['Authorization'] = `Bearer ${token}`;
     const res  = await fetch(`${API}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
     const data = await res.json();
+    if (res.status === 401 && auth) { handleLogout(); throw new Error('Session expired. Please sign in again.'); }
     if (!res.ok) throw new Error(data.message || `${method} ${path} failed`);
     return data;
   }

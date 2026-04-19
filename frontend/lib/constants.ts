@@ -1,10 +1,33 @@
 export const ROLES = {
+  // Club level
   MEMBER: 'leo_member',
   EXCO: 'club_exco',
+  // District level
+  DISTRICT_MEMBER: 'district_member',
+  DISTRICT_EXCO: 'district_exco',
+  // Multiple district level
+  MULTIPLE_MEMBER: 'multiple_member',
+  MULTIPLE_EXCO: 'multiple_exco',
+  // System
   ADMIN: 'system_admin',
 } as const;
 
 export type Role = (typeof ROLES)[keyof typeof ROLES];
+
+export const CLUB_ROLES: Role[]     = ['leo_member', 'club_exco'];
+export const DISTRICT_ROLES: Role[] = ['district_member', 'district_exco'];
+export const MULTIPLE_ROLES: Role[] = ['multiple_member', 'multiple_exco'];
+export const EXCO_ROLES: Role[]     = ['club_exco', 'district_exco', 'multiple_exco', 'system_admin'];
+
+export const ROLE_LABELS: Record<Role, string> = {
+  leo_member:      'Leo Member',
+  club_exco:       'Club Exco',
+  district_member: 'District Member',
+  district_exco:   'District Exco',
+  multiple_member: 'Multiple Member',
+  multiple_exco:   'Multiple Exco',
+  system_admin:    'System Admin',
+};
 
 export const EXCO_POSITIONS = [
   'President',

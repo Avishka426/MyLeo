@@ -1,9 +1,8 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-export interface IClub extends Document {
+export interface IMultipleDistrict extends Document {
   name: string;
-  clubCode: string;
-  district: mongoose.Types.ObjectId;   // ref → District
+  code: string;
   contactEmail: string;
   contactPhone?: string;
   logo?: string;
@@ -13,24 +12,19 @@ export interface IClub extends Document {
   updatedAt: Date;
 }
 
-const ClubSchema = new Schema<IClub>(
+const MultipleDistrictSchema = new Schema<IMultipleDistrict>(
   {
     name: {
       type: String,
-      required: [true, 'Club name is required'],
+      required: [true, 'Multiple district name is required'],
       trim: true,
     },
-    clubCode: {
+    code: {
       type: String,
-      required: [true, 'Club code is required'],
+      required: [true, 'Code is required'],
       unique: true,
       uppercase: true,
       trim: true,
-    },
-    district: {
-      type: Schema.Types.ObjectId,
-      ref: 'District',
-      required: [true, 'District is required'],
     },
     contactEmail: {
       type: String,
@@ -50,4 +44,4 @@ const ClubSchema = new Schema<IClub>(
   { timestamps: true }
 );
 
-export default mongoose.model<IClub>('Club', ClubSchema);
+export default mongoose.model<IMultipleDistrict>('MultipleDistrict', MultipleDistrictSchema);

@@ -132,7 +132,7 @@ interface Props {
   cardWidth?: number;
 }
 
-export function ImageGridViewer({ images, cardWidth = W - 32 }: Props) {
+export function ImageGridViewer({ images, cardWidth = W - 62 }: Props) {
   const [viewer, setViewer] = useState<{ index: number } | null>(null);
   if (!images || images.length === 0) return null;
 

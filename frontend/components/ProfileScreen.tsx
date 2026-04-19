@@ -9,9 +9,13 @@ import { useTheme } from '../context/ThemeContext';
 import api from '../lib/api';
 
 const ROLE_LABEL: Record<string, string> = {
-  club_exco: 'Exco Member',
-  leo_member: 'Leo Member',
-  system_admin: 'System Admin',
+  leo_member:      'Leo Member',
+  club_exco:       'Club Exco',
+  district_member: 'District Member',
+  district_exco:   'District Exco',
+  multiple_member: 'Multiple District Member',
+  multiple_exco:   'Multiple District Exco',
+  system_admin:    'System Admin',
 };
 
 export default function ProfileScreen() {
@@ -23,11 +27,15 @@ export default function ProfileScreen() {
 
   const initials = user?.memberProfile
     ? `${user.memberProfile.firstName[0]}${user.memberProfile.lastName[0]}`.toUpperCase()
-    : user?.email?.[0]?.toUpperCase() || '?';
+    : user?.firstName && user?.lastName
+      ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+      : user?.email?.[0]?.toUpperCase() || '?';
 
   const displayName = user?.memberProfile
     ? `${user.memberProfile.firstName} ${user.memberProfile.lastName}`
-    : user?.email;
+    : user?.firstName && user?.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user?.email;
 
   const handleChangePassword = async () => {
     if (!pwForm.current || !pwForm.newPw || !pwForm.confirm) { Alert.alert('Error', 'Please fill in all fields'); return; }
@@ -85,8 +93,24 @@ export default function ProfileScreen() {
               <Text style={{ fontSize: 12, color: colors.textMuted }}>  ·  {user.club.clubCode}</Text>
             </View>
           )}
-          {user?.memberProfile?.position && (
-            <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 2 }}>{user.memberProfile.position}</Text>
+          {(user as any)?.district && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+              <Ionicons name="map-outline" size={14} color={colors.primary} />
+              <Text style={{ fontSize: 13, color: colors.text, fontWeight: '600' }}>{(user as any).district.name}</Text>
+              <Text style={{ fontSize: 12, color: colors.textMuted }}>  ·  {(user as any).district.code}</Text>
+            </View>
+          )}
+          {(user as any)?.multipleDistrict && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+              <Ionicons name="globe-outline" size={14} color={colors.primary} />
+              <Text style={{ fontSize: 13, color: colors.text, fontWeight: '600' }}>{(user as any).multipleDistrict.name}</Text>
+              <Text style={{ fontSize: 12, color: colors.textMuted }}>  ·  {(user as any).multipleDistrict.code}</Text>
+            </View>
+          )}
+          {(user?.memberProfile?.position || user?.position) && (
+            <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 2 }}>
+              {user?.memberProfile?.position ?? user?.position}
+            </Text>
           )}
         </View>
 
