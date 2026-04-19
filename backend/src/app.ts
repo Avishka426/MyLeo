@@ -28,6 +28,7 @@ import adminRoutes from './routes/admin';
 import eventRoutes from './routes/events';
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Connect to DB and configure services
 connectDB().catch((err) => {
