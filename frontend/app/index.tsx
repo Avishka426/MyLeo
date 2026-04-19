@@ -14,5 +14,13 @@ export default function Index() {
     return <Redirect href="/(exco)/news" />;
   }
 
-  return <Redirect href="/(member)/feed" />;
+  if (user.role === ROLES.DISTRICT_EXCO || user.role === ROLES.DISTRICT_MEMBER) {
+    return <Redirect href={'/(district)/summary' as any} />;
+  }
+
+  if (user.role === ROLES.MULTIPLE_EXCO || user.role === ROLES.MULTIPLE_MEMBER) {
+    return <Redirect href={'/(multiple)/summary' as any} />;
+  }
+
+  return <Redirect href="/(member)/dashboard" />;
 }

@@ -12,6 +12,18 @@ interface ClubInfo {
   logo?: string;
 }
 
+interface DistrictInfo {
+  _id: string;
+  name: string;
+  code: string;
+}
+
+interface MultipleDistrictInfo {
+  _id: string;
+  name: string;
+  code: string;
+}
+
 interface MemberProfileInfo {
   _id: string;
   firstName: string;
@@ -24,7 +36,12 @@ interface User {
   id: string;
   email: string;
   role: Role;
+  firstName?: string;
+  lastName?: string;
+  position?: string;
   club?: ClubInfo;
+  district?: DistrictInfo;
+  multipleDistrict?: MultipleDistrictInfo;
   memberProfile?: MemberProfileInfo;
 }
 
@@ -37,10 +54,30 @@ interface AuthContextType {
   isGuest: () => boolean;
   isMember: () => boolean;
   isExco: () => boolean;
+  isDistrictMember: () => boolean;
+  isDistrictExco: () => boolean;
+  isMultipleMember: () => boolean;
+  isMultipleExco: () => boolean;
   isAdmin: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
+
+const getHomeRoute = (role: Role): string => {
+  switch (role) {
+    case ROLES.ADMIN:
+    case ROLES.EXCO:
+      return '/(exco)/news';
+    case ROLES.DISTRICT_EXCO:
+    case ROLES.DISTRICT_MEMBER:
+      return '/(district)/summary';
+    case ROLES.MULTIPLE_EXCO:
+    case ROLES.MULTIPLE_MEMBER:
+      return '/(multiple)/summary';
+    default:
+      return '/(member)/dashboard';
+  }
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -72,7 +109,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     id: data._id,
     email: data.email,
     role: data.role,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    position: data.position,
     club: data.club,
+    district: data.district,
+    multipleDistrict: data.multipleDistrict,
     memberProfile: data.memberProfile,
   });
 
@@ -87,16 +129,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       id: userData.id,
       email: userData.email,
       role: userData.role,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      position: userData.position,
       club: userData.club,
+      district: userData.district,
+      multipleDistrict: userData.multipleDistrict,
       memberProfile: userData.memberProfile,
     };
     setUser(mappedUser);
-
-    if (mappedUser.role === ROLES.ADMIN || mappedUser.role === ROLES.EXCO) {
-      router.replace('/(exco)/news');
-    } else {
-      router.replace('/(member)/dashboard');
-    }
+    router.replace(getHomeRoute(mappedUser.role) as any);
   };
 
   const signOut = async () => {
@@ -109,10 +151,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isGuest = () => !user;
   const isMember = () => user?.role === ROLES.MEMBER;
   const isExco = () => user?.role === ROLES.EXCO || user?.role === ROLES.ADMIN;
+  const isDistrictMember = () => user?.role === ROLES.DISTRICT_MEMBER;
+  const isDistrictExco = () => user?.role === ROLES.DISTRICT_EXCO;
+  const isMultipleMember = () => user?.role === ROLES.MULTIPLE_MEMBER;
+  const isMultipleExco = () => user?.role === ROLES.MULTIPLE_EXCO;
   const isAdmin = () => user?.role === ROLES.ADMIN;
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, signIn, signOut, isGuest, isMember, isExco, isAdmin }}>
+    <AuthContext.Provider value={{
+      user, token, isLoading, signIn, signOut,
+      isGuest, isMember, isExco,
+      isDistrictMember, isDistrictExco,
+      isMultipleMember, isMultipleExco,
+      isAdmin,
+    }}>
       {children}
     </AuthContext.Provider>
   );

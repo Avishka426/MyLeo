@@ -16,7 +16,12 @@ export const signIn = async (req: Request, res: Response, next: NextFunction): P
     return;
   }
 
-  const user = await User.findOne({ email }).select('+password').populate('club', 'name clubCode').populate('memberProfile', 'firstName lastName position');
+  const user = await User.findOne({ email })
+    .select('+password')
+    .populate('club', 'name clubCode')
+    .populate('memberProfile', 'firstName lastName position')
+    .populate('district', 'name code')
+    .populate('multipleDistrict', 'name code');
 
   if (!user) {
     res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -43,8 +48,13 @@ export const signIn = async (req: Request, res: Response, next: NextFunction): P
       id: user._id,
       email: user.email,
       role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      position: user.position,
       club: user.club,
       memberProfile: user.memberProfile,
+      district: user.district,
+      multipleDistrict: user.multipleDistrict,
     },
   });
 };
@@ -55,7 +65,9 @@ export const signIn = async (req: Request, res: Response, next: NextFunction): P
 export const getMe = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   const user = await User.findById(req.user!._id)
     .populate('club', 'name clubCode district logo')
-    .populate('memberProfile', 'firstName lastName position profileImage');
+    .populate('memberProfile', 'firstName lastName position profileImage')
+    .populate('district', 'name code')
+    .populate('multipleDistrict', 'name code');
 
   res.status(200).json({ success: true, data: user });
 };

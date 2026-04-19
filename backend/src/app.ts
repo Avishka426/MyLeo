@@ -22,6 +22,10 @@ import projectRoutes from './routes/projects';
 import helpRequestRoutes from './routes/helpRequests';
 import newsRoutes from './routes/news';
 import mapRoutes from './routes/map';
+import districtRoutes from './routes/districts';
+import multipleDistrictRoutes from './routes/multipleDistricts';
+import adminRoutes from './routes/admin';
+import eventRoutes from './routes/events';
 
 const app = express();
 
@@ -74,6 +78,10 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/help-requests', helpRequestRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/map', mapRoutes);
+app.use('/api/districts', districtRoutes);
+app.use('/api/multiple-districts', multipleDistrictRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/events', eventRoutes);
 
 // 404
 app.use((_req, res) => {

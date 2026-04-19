@@ -1,36 +1,35 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-export interface IClub extends Document {
+export interface IDistrict extends Document {
   name: string;
-  clubCode: string;
-  district: mongoose.Types.ObjectId;   // ref → District
+  code: string;
+  multipleDistrict: mongoose.Types.ObjectId;
   contactEmail: string;
   contactPhone?: string;
-  logo?: string;
   status: 'active' | 'inactive';
   description?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const ClubSchema = new Schema<IClub>(
+const DistrictSchema = new Schema<IDistrict>(
   {
     name: {
       type: String,
-      required: [true, 'Club name is required'],
+      required: [true, 'District name is required'],
       trim: true,
     },
-    clubCode: {
+    code: {
       type: String,
-      required: [true, 'Club code is required'],
+      required: [true, 'District code is required'],
       unique: true,
       uppercase: true,
       trim: true,
     },
-    district: {
+    multipleDistrict: {
       type: Schema.Types.ObjectId,
-      ref: 'District',
-      required: [true, 'District is required'],
+      ref: 'MultipleDistrict',
+      required: [true, 'Multiple district is required'],
     },
     contactEmail: {
       type: String,
@@ -39,7 +38,6 @@ const ClubSchema = new Schema<IClub>(
       trim: true,
     },
     contactPhone: { type: String, trim: true },
-    logo: { type: String },
     status: {
       type: String,
       enum: ['active', 'inactive'],
@@ -50,4 +48,4 @@ const ClubSchema = new Schema<IClub>(
   { timestamps: true }
 );
 
-export default mongoose.model<IClub>('Club', ClubSchema);
+export default mongoose.model<IDistrict>('District', DistrictSchema);

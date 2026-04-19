@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../../lib/api';
 import { useTheme } from '../../../context/ThemeContext';
@@ -19,13 +20,14 @@ interface Club {
   createdAt: string;
 }
 
-export default function ClubDetailScreen() {
+export default function MultipleClubDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { colors, radius } = useTheme();
   const [club, setClub] = useState<Club | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { colors, radius } = useTheme();
 
   useEffect(() => {
     api.get(`/clubs/${id}`)
@@ -39,7 +41,6 @@ export default function ClubDetailScreen() {
   if (error || !club) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
-        <Stack.Screen options={{ headerShown: false }} />
         <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
         <Text style={{ color: colors.error, marginTop: 12, fontSize: 15 }}>{error || 'Club not found.'}</Text>
       </View>
@@ -55,22 +56,21 @@ export default function ClubDetailScreen() {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ paddingBottom: 40 }}>
-      <Stack.Screen options={{ headerShown: false }} />
-      {/* Hero */}
       <View style={{
         backgroundColor: colors.primary,
-        paddingTop: 52,
+        paddingTop: insets.top + 12,
         paddingBottom: 40,
         alignItems: 'center',
         gap: 14,
       }}>
         <TouchableOpacity
           onPress={() => router.back()}
-          style={{ position: 'absolute', top: 40, left: 16, padding: 4 }}
+          style={{ position: 'absolute', top: insets.top + 10, left: 16, padding: 4 }}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Ionicons name="arrow-back" size={24} color="#ffffff" />
         </TouchableOpacity>
+
         {club.logo ? (
           <Image
             source={{ uri: club.logo }}
@@ -87,15 +87,14 @@ export default function ClubDetailScreen() {
             <Ionicons name="shield-checkmark" size={44} color="#fff" />
           </View>
         )}
+
         <View style={{ alignItems: 'center', gap: 4 }}>
           <Text style={{ fontSize: 20, fontWeight: '800', color: '#fff', textAlign: 'center', paddingHorizontal: 24 }}>
             {club.name}
           </Text>
           <View style={{
-            backgroundColor: 'rgba(255,255,255,0.2)',
-            borderRadius: radius.full,
-            paddingHorizontal: 12,
-            paddingVertical: 4,
+            backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: radius.full,
+            paddingHorizontal: 12, paddingVertical: 4,
           }}>
             <Text style={{ fontSize: 12, fontWeight: '700', color: '#fff', letterSpacing: 1 }}>{club.clubCode}</Text>
           </View>
@@ -103,45 +102,20 @@ export default function ClubDetailScreen() {
       </View>
 
       <View style={{ padding: 16, gap: 12, marginTop: -20 }}>
-        {/* Description */}
         {club.description ? (
-          <View style={{
-            backgroundColor: colors.card,
-            borderRadius: radius.lg,
-            padding: 16,
-            borderWidth: 1,
-            borderColor: colors.border,
-          }}>
+          <View style={{ backgroundColor: colors.card, borderRadius: radius.lg, padding: 16, borderWidth: 1, borderColor: colors.border }}>
             <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textMuted, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>About</Text>
             <Text style={{ fontSize: 14, color: colors.text, lineHeight: 22 }}>{club.description}</Text>
           </View>
         ) : null}
 
-        {/* Details */}
-        <View style={{
-          backgroundColor: colors.card,
-          borderRadius: radius.lg,
-          borderWidth: 1,
-          borderColor: colors.border,
-          overflow: 'hidden',
-        }}>
+        <View style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' }}>
           {details.map((item, index) => (
-            <View
-              key={item.label}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                padding: 14,
-                borderTopWidth: index === 0 ? 0 : 1,
-                borderTopColor: colors.divider,
-                gap: 12,
-              }}
-            >
-              <View style={{
-                width: 36, height: 36, borderRadius: 18,
-                backgroundColor: colors.primaryLight,
-                justifyContent: 'center', alignItems: 'center',
-              }}>
+            <View key={item.label} style={{
+              flexDirection: 'row', alignItems: 'center', padding: 14,
+              borderTopWidth: index === 0 ? 0 : 1, borderTopColor: colors.divider, gap: 12,
+            }}>
+              <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primaryLight, justifyContent: 'center', alignItems: 'center' }}>
                 <Ionicons name={item.icon} size={18} color={colors.primary} />
               </View>
               <View style={{ flex: 1 }}>
