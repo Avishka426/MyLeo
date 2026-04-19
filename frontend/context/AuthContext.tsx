@@ -39,6 +39,7 @@ interface User {
   firstName?: string;
   lastName?: string;
   position?: string;
+  profileImage?: string;
   club?: ClubInfo;
   district?: DistrictInfo;
   multipleDistrict?: MultipleDistrictInfo;
@@ -51,6 +52,7 @@ interface AuthContextType {
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   isGuest: () => boolean;
   isMember: () => boolean;
   isExco: () => boolean;
@@ -112,6 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     firstName: data.firstName,
     lastName: data.lastName,
     position: data.position,
+    profileImage: data.profileImage,
     club: data.club,
     district: data.district,
     multipleDistrict: data.multipleDistrict,
@@ -141,6 +144,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.replace(getHomeRoute(mappedUser.role) as any);
   };
 
+  const refreshUser = async () => {
+    const response = await api.get('/auth/me');
+    setUser(mapUserResponse(response.data.data));
+  };
+
   const signOut = async () => {
     await AsyncStorage.removeItem('leo_moment_token');
     setToken(null);
@@ -159,7 +167,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider value={{
-      user, token, isLoading, signIn, signOut,
+      user, token, isLoading, signIn, signOut, refreshUser,
       isGuest, isMember, isExco,
       isDistrictMember, isDistrictExco,
       isMultipleMember, isMultipleExco,

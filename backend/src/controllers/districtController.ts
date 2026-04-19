@@ -4,6 +4,7 @@ import District from '../models/District';
 import Club from '../models/Club';
 import Project from '../models/Project';
 import asyncHandler from '../utils/asyncHandler';
+import { cloudinary } from '../config/cloudinary';
 
 // GET /api/districts
 // district_exco → own district only; multiple_exco/admin → all
@@ -46,6 +47,12 @@ export const updateDistrict = asyncHandler(async (req: AuthRequest, res: Respons
   if (!district) { res.status(404).json({ success: false, message: 'District not found' }); return; }
   if (!canManageDistrict(req.user!, district._id.toString())) {
     res.status(403).json({ success: false, message: 'Not authorized' }); return;
+  }
+  if (req.file) {
+    const b64 = Buffer.from(req.file.buffer).toString('base64');
+    const dataURI = `data:${req.file.mimetype};base64,${b64}`;
+    const result = await cloudinary.uploader.upload(dataURI, { folder: 'leo_moment/districts' });
+    req.body.logo = result.secure_url;
   }
   const updated = await District.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
   res.json({ success: true, data: updated });
