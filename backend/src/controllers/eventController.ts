@@ -26,6 +26,8 @@ export const getEvents = asyncHandler(async (req: AuthRequest, res: Response) =>
 
   const events = await Event.find(filter)
     .populate('createdBy', 'firstName lastName email')
+    .populate('district', 'name code logo')
+    .populate('multipleDistrict', 'name code logo')
     .sort({ eventDate: 1 });
 
   res.json({ success: true, data: events });

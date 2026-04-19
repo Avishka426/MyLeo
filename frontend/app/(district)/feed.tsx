@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../lib/api';
@@ -27,6 +27,7 @@ interface EventPost {
   eventDate: string;
   visibility: 'own' | 'all';
   createdBy: { firstName?: string; lastName?: string; email: string };
+  district?: { name: string; code: string; logo?: string };
 }
 
 function getCountdown(eventDate: string) {
@@ -107,17 +108,18 @@ export default function DistrictFeedScreen() {
   );
 
   const renderEvent = ({ item }: { item: EventPost }) => {
-    const name = item.createdBy?.firstName
-      ? `${item.createdBy.firstName} ${item.createdBy.lastName}`
-      : item.createdBy?.email;
     return (
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 }}>
-          <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.accent + '33', justifyContent: 'center', alignItems: 'center', marginRight: 8 }}>
-            <Ionicons name="calendar" size={14} color={colors.accent} />
+          <View style={{ width: 28, height: 28, borderRadius: 14, overflow: 'hidden', backgroundColor: colors.accent + '33', justifyContent: 'center', alignItems: 'center', marginRight: 8 }}>
+            {item.district?.logo
+              ? <Image source={{ uri: item.district.logo }} style={{ width: 28, height: 28 }} />
+              : <Ionicons name="map" size={14} color={colors.accent} />}
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 12, color: colors.textMuted, fontWeight: '600' }}>{name}</Text>
+            <Text style={{ fontSize: 12, color: colors.textMuted, fontWeight: '600' }}>
+              {item.district?.name ?? 'District'}
+            </Text>
             <Text style={{ fontSize: 11, color: colors.textMuted }}>
               {new Date(item.eventDate).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
             </Text>

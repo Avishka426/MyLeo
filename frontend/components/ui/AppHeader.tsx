@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -15,7 +15,11 @@ export function AppHeader() {
 
   const initials = user?.memberProfile
     ? `${user.memberProfile.firstName[0]}${user.memberProfile.lastName[0]}`.toUpperCase()
-    : user?.email?.[0]?.toUpperCase() || '?';
+    : user?.firstName && user?.lastName
+      ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+      : user?.email?.[0]?.toUpperCase() || '?';
+
+  const profileImageUrl = user?.profileImage || user?.memberProfile?.profileImage;
 
   const goToProfile = () => {
     if (user?.role === ROLES.MEMBER) router.push('/(member)/profile');
@@ -51,12 +55,14 @@ export function AppHeader() {
         onPress={goToProfile}
         activeOpacity={0.7}
         style={{
-          width: 36, height: 36, borderRadius: 18,
+          width: 36, height: 36, borderRadius: 18, overflow: 'hidden', borderWidth: 2, borderColor: isDark ? colors.surface + '88' : colors.surface + 'cc',
           backgroundColor: colors.primary,
           justifyContent: 'center', alignItems: 'center',
         }}
       >
-        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>{initials}</Text>
+        {profileImageUrl
+          ? <Image source={{ uri: profileImageUrl }} style={{ width: 36, height: 36 }} />
+          : <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>{initials}</Text>}
       </TouchableOpacity>
     </View>
   );
