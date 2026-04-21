@@ -48,7 +48,7 @@ export default function SignInScreen() {
           }}>
             <Ionicons name="shield-checkmark" size={46} color={colors.primary} />
           </View>
-          <Text style={{ fontSize: 30, fontWeight: '900', color: colors.text, letterSpacing: -0.5 }}>MyLeo</Text>
+          <Text style={{ fontSize: 30, fontWeight: '900', color: colors.text, letterSpacing: -0.5 }}>LeoLink</Text>
           <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 6 }}>Sign in to your account</Text>
         </View>
 

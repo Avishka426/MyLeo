@@ -11,7 +11,7 @@ interface Club {
   _id: string;
   name: string;
   clubCode: string;
-  district: string;
+  district: { _id: string; name: string; code: string };
   contactEmail: string;
   contactPhone?: string;
   logo?: string;
@@ -48,7 +48,7 @@ export default function MultipleClubDetailScreen() {
   }
 
   const details = [
-    { icon: 'location-outline' as const, label: 'District', value: club.district },
+    { icon: 'location-outline' as const, label: 'District', value: club.district?.name ?? '—' },
     { icon: 'mail-outline' as const, label: 'Email', value: club.contactEmail },
     { icon: 'call-outline' as const, label: 'Phone', value: club.contactPhone || '—' },
     { icon: 'calendar-outline' as const, label: 'Member Since', value: new Date(club.createdAt).getFullYear().toString() },

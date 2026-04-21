@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import Club from '../models/Club';
-import { AuthRequest } from '../middleware/auth';
+import { AuthRequest, canManageClub } from '../middleware/auth';
 import auditLogger from '../utils/auditLogger';
 import { cloudinary } from '../config/cloudinary';
 
@@ -16,7 +16,7 @@ export const getClubs = async (_req: Request, res: Response, next: NextFunction)
 // @route   GET /api/clubs/:id
 // @access  Private
 export const getClub = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const club = await Club.findById(req.params.id);
+  const club = await Club.findById(req.params.id).populate('district', 'name code');
   if (!club) {
     res.status(404).json({ success: false, message: 'Club not found' });
     return;
@@ -52,12 +52,9 @@ export const updateClub = async (req: AuthRequest, res: Response, next: NextFunc
     return;
   }
 
-  // club_exco can only update their own club
-  if (req.user!.role === 'club_exco') {
-    if (!req.user!.club || req.user!.club.toString() !== req.params.id) {
-      res.status(403).json({ success: false, message: 'Not authorized to update this club' });
-      return;
-    }
+  if (!canManageClub(req.user!, req.params.id)) {
+    res.status(403).json({ success: false, message: 'Not authorized to update this club' });
+    return;
   }
 
   // Handle logo upload if file provided
