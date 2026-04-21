@@ -46,7 +46,7 @@ export function AppHeader() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
         <Ionicons name="shield-checkmark" size={22} color={colors.primary} />
         <Text style={{ fontSize: 22, fontWeight: '900', color: colors.text, letterSpacing: -0.3 }}>
-          MyLeo
+          LeoLink
         </Text>
       </View>
 

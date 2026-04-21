@@ -96,17 +96,14 @@ export default function MapScreen() {
         </Text>
       </View>
 
-    <View style={{
+    {/* <View style={{
         position: 'absolute', top:50, right: 12,
         // flexDirection: 'row', alignItems: 'center',
         // backgroundColor: colors.card, paddingHorizontal: 12, paddingVertical: 6,
         // borderRadius: radius.full, borderWidth: 1, borderColor: colors.border,
         // shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 3,
       }}>
-        {/* <Ionicons name="location" size={14} color={colors.primary} />
-        <Text style={{ fontSize: 12, color: colors.text, fontWeight: '600', marginLeft: 4 }}>
-          Status
-        </Text> */}
+
         <DropDownPicker
           open={open}
           value={value}
@@ -133,7 +130,7 @@ export default function MapScreen() {
             fontSize: 12,
           }}
         />
-      </View>
+      </View> */}
 
       {/* Selected project card */}
       {selected && (

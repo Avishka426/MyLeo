@@ -14,7 +14,7 @@ interface Club {
   _id: string;
   name: string;
   clubCode: string;
-  district: string;
+  district: { _id: string; name: string; code: string };
   contactEmail: string;
   contactPhone?: string;
   logo?: string;
@@ -54,7 +54,7 @@ export default function ClubAccountScreen() {
     setSaving(true);
     try {
       const res = await api.put(`/clubs/${club._id}`, {
-        name: form.name, district: form.district,
+        name: form.name,
         contactEmail: form.contactEmail, contactPhone: form.contactPhone,
         description: form.description,
       });
@@ -76,14 +76,13 @@ export default function ClubAccountScreen() {
 
   const FIELDS = [
     { label: 'Club Name', key: 'name' },
-    { label: 'District', key: 'district' },
     { label: 'Contact Email', key: 'contactEmail', keyboard: 'email-address' },
     { label: 'Contact Phone', key: 'contactPhone', keyboard: 'phone-pad' },
     { label: 'Description', key: 'description', multiline: true },
   ];
 
   const INFO_ROWS = [
-    { icon: 'location-outline', label: 'District', value: club.district },
+    { icon: 'location-outline', label: 'District', value: club.district?.name ?? '—' },
     { icon: 'mail-outline', label: 'Email', value: club.contactEmail },
     { icon: 'call-outline', label: 'Phone', value: club.contactPhone || '—' },
   ];
