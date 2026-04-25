@@ -8,7 +8,9 @@ export default function RootLayout() {
     <ThemeProvider>
       <AuthProvider>
         <StatusBar style="auto" />
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="chat" options={{ presentation: 'modal', headerShown: false }} />
+        </Stack>
       </AuthProvider>
     </ThemeProvider>
   );

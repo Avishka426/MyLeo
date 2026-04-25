@@ -1,10 +1,13 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { View } from 'react-native';
+import { ChatFAB } from '../../components/ui/ChatFAB';
 import { useTheme } from '../../context/ThemeContext';
 
 export default function PublicLayout() {
   const { colors } = useTheme();
   return (
+    <View style={{ flex: 1 }}>
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
@@ -48,5 +51,7 @@ export default function PublicLayout() {
         options={{ href: null }}
       />
     </Tabs>
+    <ChatFAB />
+    </View>
   );
 }
