@@ -1,14 +1,14 @@
 import React, { useRef } from 'react';
 import { Animated, Dimensions, PanResponder, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useChatModal } from '../../context/ChatContext';
 import { useTheme } from '../../context/ThemeContext';
 
 const { width: W, height: H } = Dimensions.get('window');
 const SIZE = 56;
 
 export function ChatFAB() {
-  const router = useRouter();
+  const { openChat } = useChatModal();
   const { colors } = useTheme();
   const pos = useRef(new Animated.ValueXY({ x: W - SIZE - 16, y: H - SIZE - 160 })).current;
 
@@ -25,7 +25,7 @@ export function ChatFAB() {
         pos.flattenOffset();
         const moved = Math.sqrt(g.dx * g.dx + g.dy * g.dy);
         if (moved < 5) {
-          router.push('/chat');
+          openChat();
           return;
         }
         const nx = Math.max(0, Math.min(g.moveX - SIZE / 2, W - SIZE));
@@ -39,7 +39,7 @@ export function ChatFAB() {
     <Animated.View style={[styles.fab, { backgroundColor: colors.primary }, pos.getLayout()]} {...pan.panHandlers}>
       <TouchableOpacity
         activeOpacity={0.9}
-        onPress={() => router.push('/chat')}
+        onPress={() => openChat()}
         style={styles.touch}
       >
         <Ionicons name="chatbubble-ellipses" size={24} color="#fff" />
