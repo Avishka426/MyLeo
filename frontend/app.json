@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.windsun.frontend",
+      "bundleIdentifier": "org.uomleos.leolink",
       "icons": {
         "tinted": "./assets/images/ios-tinted.png",
         "dark": "./assets/images/ios-dark.png",
@@ -25,7 +25,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.windsun.frontend"
+      "package": "org.uomleos.leolink"
     },
     "web": {
       "output": "static",
@@ -50,9 +50,6 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    },
-    "extra": {
-      "apiUrl": "http://localhost:3000/api"
     }
   }
 }
