@@ -1,13 +1,11 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, Dimensions, TouchableOpacity } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import WebView from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../lib/api';
 import { useTheme } from '../../context/ThemeContext';
 import { STATUS_COLORS } from '../../lib/theme';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
-import { PROJECT_STATUSES } from '../../lib/constants';
-import DropDownPicker from 'react-native-dropdown-picker';
+import { buildProjectMapHTML } from '../../lib/mapHtml';
 
 interface MapProject {
   id: string;
@@ -18,21 +16,13 @@ interface MapProject {
   location: { coordinates: [number, number]; address?: string; placeName?: string };
 }
 
-const { width, height } = Dimensions.get('window');
-
 export default function MapScreen() {
   const [projects, setProjects] = useState<MapProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selected, setSelected] = useState<MapProject | null>(null);
+  const webViewRef = useRef<WebView>(null);
   const { colors, radius } = useTheme();
-  const items = PROJECT_STATUSES.map((status) => ({
-  label: status.charAt(0).toUpperCase() + status.slice(1),
-  value: status,
-}));
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(null);
-
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -45,12 +35,23 @@ export default function MapScreen() {
       setLoading(false);
     }
   }, []);
-  console.log(value);
-  
 
   useEffect(() => { fetchProjects(); }, [fetchProjects]);
 
-  if (loading) return <LoadingSpinner />;
+  const handleMessage = useCallback((event: any) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (!data.id) { setSelected(null); return; }
+      const project = projects.find((p) => p.id === data.id);
+      if (project) setSelected(project);
+    } catch {}
+  }, [projects]);
+
+  if (loading) return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+      <ActivityIndicator size="large" color={colors.primary} />
+    </View>
+  );
 
   if (error) return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: colors.background }}>
@@ -65,26 +66,12 @@ export default function MapScreen() {
     </View>
   );
 
+  const html = buildProjectMapHTML(projects, STATUS_COLORS, colors.primary);
+
   return (
     <View style={{ flex: 1 }}>
-      <MapView
-        style={{ width, height }}
-        initialRegion={{ latitude: 7.8731, longitude: 80.7718, latitudeDelta: 4, longitudeDelta: 4 }}
-        onPress={() => setSelected(null)}
-      >
-        {projects.map((p) => (
-          <Marker
-            key={p.id}
-            coordinate={{ latitude: p.location.coordinates[1], longitude: p.location.coordinates[0] }}
-            pinColor={STATUS_COLORS[p.status] || colors.primary}
-            onPress={(e) => { e.stopPropagation(); setSelected(p); }}
-          />
-        ))}
-      </MapView>
-
-      {/* Project count badge */}
       <View style={{
-        position: 'absolute', top: 12, right: 12,
+        position: 'absolute', top: 12, right: 12, zIndex: 10,
         flexDirection: 'row', alignItems: 'center',
         backgroundColor: colors.card, paddingHorizontal: 12, paddingVertical: 6,
         borderRadius: radius.full, borderWidth: 1, borderColor: colors.border,
@@ -96,46 +83,16 @@ export default function MapScreen() {
         </Text>
       </View>
 
-    <View style={{
-        position: 'absolute', top:50, right: 12,
-        // flexDirection: 'row', alignItems: 'center',
-        // backgroundColor: colors.card, paddingHorizontal: 12, paddingVertical: 6,
-        // borderRadius: radius.full, borderWidth: 1, borderColor: colors.border,
-        // shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 3,
-      }}>
-        {/* <Ionicons name="location" size={14} color={colors.primary} />
-        <Text style={{ fontSize: 12, color: colors.text, fontWeight: '600', marginLeft: 4 }}>
-          Status
-        </Text> */}
-        <DropDownPicker
-          open={open}
-          value={value}
-          items={items}
-          setOpen={setOpen}
-          setValue={setValue}
-          setItems={() => {}}
-          placeholder="Select project status"
-          style={{
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-            borderRadius: 20,
-            width: 165,
-          }}
-          dropDownContainerStyle={{
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-            borderRadius: 12,
-            width: 165,
-          }}
-          textStyle={{
-            color: colors.text,
-            fontWeight: '600',
-            fontSize: 12,
-          }}
-        />
-      </View>
+      <WebView
+        ref={webViewRef}
+        source={{ html }}
+        style={{ flex: 1 }}
+        onMessage={handleMessage}
+        javaScriptEnabled
+        originWhitelist={['*']}
+        mixedContentMode="always"
+      />
 
-      {/* Selected project card */}
       {selected && (
         <View style={{
           position: 'absolute', bottom: 24, left: 16, right: 16,
@@ -154,7 +111,7 @@ export default function MapScreen() {
           <Text style={{ fontSize: 12, color: colors.primary, fontWeight: '600', marginBottom: 10 }}>
             {selected.club?.name}
           </Text>
-          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
             <View style={{ backgroundColor: colors.background, borderRadius: radius.sm, paddingHorizontal: 8, paddingVertical: 3 }}>
               <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textMuted }}>{selected.category}</Text>
             </View>

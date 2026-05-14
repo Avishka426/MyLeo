@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, Dimensions, TouchableOpacity } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import WebView from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../lib/api';
 import { useTheme } from '../../context/ThemeContext';
 import { STATUS_COLORS } from '../../lib/theme';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
+import { buildProjectMapHTML } from '../../lib/mapHtml';
 
 interface MapProject {
   id: string;
@@ -16,13 +16,12 @@ interface MapProject {
   location: { coordinates: [number, number]; address?: string; placeName?: string };
 }
 
-const { width, height } = Dimensions.get('window');
-
 export default function MapScreen() {
   const [projects, setProjects] = useState<MapProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selected, setSelected] = useState<MapProject | null>(null);
+  const webViewRef = useRef<WebView>(null);
   const { colors, radius } = useTheme();
 
   const fetchProjects = useCallback(async () => {
@@ -39,7 +38,20 @@ export default function MapScreen() {
 
   useEffect(() => { fetchProjects(); }, [fetchProjects]);
 
-  if (loading) return <LoadingSpinner />;
+  const handleMessage = useCallback((event: any) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (!data.id) { setSelected(null); return; }
+      const project = projects.find((p) => p.id === data.id);
+      if (project) setSelected(project);
+    } catch {}
+  }, [projects]);
+
+  if (loading) return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+      <ActivityIndicator size="large" color={colors.primary} />
+    </View>
+  );
 
   if (error) return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: colors.background }}>
@@ -54,25 +66,12 @@ export default function MapScreen() {
     </View>
   );
 
+  const html = buildProjectMapHTML(projects, STATUS_COLORS, colors.primary);
+
   return (
     <View style={{ flex: 1 }}>
-      <MapView
-        style={{ width, height }}
-        initialRegion={{ latitude: 7.8731, longitude: 80.7718, latitudeDelta: 4, longitudeDelta: 4 }}
-        onPress={() => setSelected(null)}
-      >
-        {projects.map((p) => (
-          <Marker
-            key={p.id}
-            coordinate={{ latitude: p.location.coordinates[1], longitude: p.location.coordinates[0] }}
-            pinColor={STATUS_COLORS[p.status] || colors.primary}
-            onPress={(e) => { e.stopPropagation(); setSelected(p); }}
-          />
-        ))}
-      </MapView>
-
       <View style={{
-        position: 'absolute', top: 12, right: 12,
+        position: 'absolute', top: 12, right: 12, zIndex: 10,
         flexDirection: 'row', alignItems: 'center',
         backgroundColor: colors.card, paddingHorizontal: 12, paddingVertical: 6,
         borderRadius: radius.full, borderWidth: 1, borderColor: colors.border,
@@ -83,6 +82,16 @@ export default function MapScreen() {
           {projects.length} project{projects.length !== 1 ? 's' : ''}
         </Text>
       </View>
+
+      <WebView
+        ref={webViewRef}
+        source={{ html }}
+        style={{ flex: 1 }}
+        onMessage={handleMessage}
+        javaScriptEnabled
+        originWhitelist={['*']}
+        mixedContentMode="always"
+      />
 
       {selected && (
         <View style={{
@@ -99,8 +108,10 @@ export default function MapScreen() {
               <Ionicons name="close" size={20} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
-          <Text style={{ fontSize: 12, color: colors.primary, fontWeight: '600', marginBottom: 10 }}>{selected.club?.name}</Text>
-          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+          <Text style={{ fontSize: 12, color: colors.primary, fontWeight: '600', marginBottom: 10 }}>
+            {selected.club?.name}
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
             <View style={{ backgroundColor: colors.background, borderRadius: radius.sm, paddingHorizontal: 8, paddingVertical: 3 }}>
               <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textMuted }}>{selected.category}</Text>
             </View>

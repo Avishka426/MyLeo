@@ -33,6 +33,13 @@ export default function ExcoLayout() {
           }}
         />
         <Tabs.Screen
+          name="map"
+          options={{
+            title: 'Map',
+            tabBarIcon: ({ color, size }) => <Ionicons name="map-outline" size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
           name="help"
           options={{
             title: 'Help',

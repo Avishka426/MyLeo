@@ -186,35 +186,40 @@ export function ChatModal() {
 
   return (
     <Modal visible={isOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeChat}>
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        {/* Header */}
-        <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border, paddingTop: insets.top + 8 }]}>
-          <TouchableOpacity onPress={closeChat} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Ionicons name="arrow-back" size={22} color={colors.text} />
-          </TouchableOpacity>
-          <View style={styles.headerTitle}>
-            <View style={[styles.headerIcon, { backgroundColor: colors.primary }]}>
-              <Ionicons name="sparkles" size={14} color="#fff" />
-            </View>
-            <View>
-              <Text style={[styles.headerName, { color: colors.text }]}>LeoLink AI</Text>
-              <Text style={[styles.headerSub, { color: colors.textMuted }]}>Leo Documentation Assistant</Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+      >
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+          {/* Header */}
+          <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border, paddingTop: insets.top + 8 }]}>
+            <TouchableOpacity onPress={closeChat} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Ionicons name="arrow-back" size={22} color={colors.text} />
+            </TouchableOpacity>
+            <View style={styles.headerTitle}>
+              <View style={[styles.headerIcon, { backgroundColor: colors.primary }]}>
+                <Ionicons name="sparkles" size={14} color="#fff" />
+              </View>
+              <View>
+                <Text style={[styles.headerName, { color: colors.text }]}>LeoLink AI</Text>
+                <Text style={[styles.headerSub, { color: colors.textMuted }]}>Leo Documentation Assistant</Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        {/* Messages */}
-        <FlatList
-          ref={flatRef}
-          data={messages}
-          keyExtractor={m => m.id}
-          renderItem={renderMessage}
-          contentContainerStyle={styles.list}
-          onContentSizeChange={() => flatRef.current?.scrollToEnd({ animated: false })}
-        />
+          {/* Messages */}
+          <FlatList
+            ref={flatRef}
+            data={messages}
+            keyExtractor={m => m.id}
+            renderItem={renderMessage}
+            contentContainerStyle={styles.list}
+            onContentSizeChange={() => flatRef.current?.scrollToEnd({ animated: false })}
+            keyboardShouldPersistTaps="handled"
+          />
 
-        {/* Input */}
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          {/* Input */}
           <View style={[styles.inputRow, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom + 8 }]}>
             <TextInput
               style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text, borderRadius: radius.full }]}
@@ -233,8 +238,8 @@ export function ChatModal() {
               <Ionicons name={streaming ? 'hourglass-outline' : 'send'} size={18} color="#fff" />
             </Pressable>
           </View>
-        </KeyboardAvoidingView>
-      </View>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

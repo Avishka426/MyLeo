@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, TextInput, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import WebView from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../lib/api';
 import { useTheme } from '../../context/ThemeContext';
 import { STATUS_COLORS } from '../../lib/theme';
-import { buildProjectMapHTML, MAPS_KEY } from '../../lib/mapHtml';
+import { buildProjectMapHTML } from '../../lib/mapHtml';
 
 interface MapProject {
   id: string;
@@ -16,13 +16,11 @@ interface MapProject {
   location: { coordinates: [number, number]; address?: string; placeName?: string };
 }
 
-export default function MapScreen() {
+export default function ExcoMapScreen() {
   const [projects, setProjects] = useState<MapProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selected, setSelected] = useState<MapProject | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searching, setSearching] = useState(false);
   const webViewRef = useRef<WebView>(null);
   const { colors, radius } = useTheme();
 
@@ -49,27 +47,6 @@ export default function MapScreen() {
     } catch {}
   }, [projects]);
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-    setSearching(true);
-    try {
-      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(searchQuery)}&key=${MAPS_KEY}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.status === 'OK' && data.results.length > 0) {
-        const { lat, lng } = data.results[0].geometry.location;
-        webViewRef.current?.injectJavaScript(`map.setCenter({ lat: ${lat}, lng: ${lng} }); map.setZoom(14); true;`);
-        setSelected(null);
-      } else {
-        Alert.alert('Not found', `Could not find "${searchQuery}".`);
-      }
-    } catch {
-      Alert.alert('Error', 'Search failed. Check your connection.');
-    } finally {
-      setSearching(false);
-    }
-  };
-
   if (loading) return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
       <ActivityIndicator size="large" color={colors.primary} />
@@ -93,47 +70,8 @@ export default function MapScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <WebView
-        ref={webViewRef}
-        source={{ html }}
-        style={{ flex: 1 }}
-        onMessage={handleMessage}
-        javaScriptEnabled
-        originWhitelist={['*']}
-        mixedContentMode="always"
-      />
-
-      {/* Search bar */}
       <View style={{
-        position: 'absolute', top: 12, left: 12, right: 12, zIndex: 10,
-        flexDirection: 'row', alignItems: 'center', gap: 8,
-        backgroundColor: colors.card, borderRadius: radius.full,
-        borderWidth: 1, borderColor: colors.border,
-        paddingHorizontal: 14, paddingVertical: 8,
-        shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 6, elevation: 4,
-      }}>
-        <Ionicons name="search" size={16} color={colors.textMuted} />
-        <TextInput
-          style={{ flex: 1, fontSize: 14, color: colors.text, paddingVertical: 2 }}
-          placeholder="Search location…"
-          placeholderTextColor={colors.textMuted}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          onSubmitEditing={handleSearch}
-          returnKeyType="search"
-        />
-        {searching
-          ? <ActivityIndicator size="small" color={colors.primary} />
-          : searchQuery.length > 0
-            ? <TouchableOpacity onPress={handleSearch} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Ionicons name="arrow-forward-circle" size={22} color={colors.primary} />
-              </TouchableOpacity>
-            : null}
-      </View>
-
-      {/* Project count badge */}
-      <View style={{
-        position: 'absolute', top: 68, right: 12, zIndex: 10,
+        position: 'absolute', top: 12, right: 12, zIndex: 10,
         flexDirection: 'row', alignItems: 'center',
         backgroundColor: colors.card, paddingHorizontal: 12, paddingVertical: 6,
         borderRadius: radius.full, borderWidth: 1, borderColor: colors.border,
@@ -145,7 +83,16 @@ export default function MapScreen() {
         </Text>
       </View>
 
-      {/* Selected project card */}
+      <WebView
+        ref={webViewRef}
+        source={{ html }}
+        style={{ flex: 1 }}
+        onMessage={handleMessage}
+        javaScriptEnabled
+        originWhitelist={['*']}
+        mixedContentMode="always"
+      />
+
       {selected && (
         <View style={{
           position: 'absolute', bottom: 24, left: 16, right: 16,
