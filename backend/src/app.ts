@@ -33,7 +33,7 @@ app.set('trust proxy', 1);
 // Connect to DB and configure services
 connectDB().catch((err) => {
   console.error('Database connection failed:', err.message);
-  process.exit(1);
+  if (!process.env.VERCEL) process.exit(1);
 });
 configureCloudinary();
 
@@ -92,9 +92,11 @@ app.use((_req, res) => {
 // Central error handler
 app.use(errorHandler);
 
-const PORT = Number(process.env.PORT) || 3000;
-app.listen(PORT, () => {
-  console.log(`Leo Moment API running on port ${PORT} [${process.env.NODE_ENV}]`);
-});
+if (!process.env.VERCEL) {
+  const PORT = Number(process.env.PORT) || 3000;
+  app.listen(PORT, () => {
+    console.log(`Leo Moment API running on port ${PORT} [${process.env.NODE_ENV}]`);
+  });
+}
 
 export default app;

@@ -1,11 +1,14 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { View } from 'react-native';
 import { AppHeader } from '../../components/ui/AppHeader';
+import { ChatFAB } from '../../components/ui/ChatFAB';
 import { useTheme } from '../../context/ThemeContext';
 
 export default function MemberLayout() {
   const { colors } = useTheme();
   return (
+    <View style={{ flex: 1 }}>
     <Tabs
       initialRouteName="feed"
       screenOptions={{
@@ -50,5 +53,7 @@ export default function MemberLayout() {
       <Tabs.Screen name="projects/create"  options={{ href: null }} />
       <Tabs.Screen name="profile"          options={{ href: null }} />
     </Tabs>
+    <ChatFAB />
+    </View>
   );
 }

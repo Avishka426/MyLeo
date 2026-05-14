@@ -1,11 +1,14 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { View } from 'react-native';
 import { AppHeader } from '../../components/ui/AppHeader';
+import { ChatFAB } from '../../components/ui/ChatFAB';
 import { useTheme } from '../../context/ThemeContext';
 
 export default function MultipleLayout() {
   const { colors } = useTheme();
   return (
+    <View style={{ flex: 1 }}>
     <Tabs
       initialRouteName="summary"
       screenOptions={{
@@ -54,5 +57,7 @@ export default function MultipleLayout() {
       <Tabs.Screen name="clubs/[id]" options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="create-event" options={{ href: null, headerShown: false }} />
     </Tabs>
+    <ChatFAB />
+    </View>
   );
 }

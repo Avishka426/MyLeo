@@ -81,7 +81,8 @@ export const updateProject = async (req: AuthRequest, res: Response, next: NextF
     return;
   }
 
-  if (project.club.toString() !== req.user!.club?.toString()) {
+  const userClubId = (req.user!.club as any)?._id?.toString() ?? req.user!.club?.toString();
+  if (project.club.toString() !== userClubId) {
     res.status(403).json({ success: false, message: 'Not authorized to update this project' });
     return;
   }
@@ -113,7 +114,8 @@ export const updateProjectLocation = async (req: AuthRequest, res: Response, nex
     return;
   }
 
-  if (project.club.toString() !== req.user!.club?.toString()) {
+  const userClubId = (req.user!.club as any)?._id?.toString() ?? req.user!.club?.toString();
+  if (project.club.toString() !== userClubId) {
     res.status(403).json({ success: false, message: 'Not authorized to update this project location' });
     return;
   }

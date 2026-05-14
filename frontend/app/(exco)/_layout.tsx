@@ -1,55 +1,60 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { View } from 'react-native';
 import { AppHeader } from '../../components/ui/AppHeader';
+import { ChatFAB } from '../../components/ui/ChatFAB';
 import { useTheme } from '../../context/ThemeContext';
 
 export default function ExcoLayout() {
   const { colors } = useTheme();
   return (
-    <Tabs
-      initialRouteName="news/index"
-      screenOptions={{
-        header: () => <AppHeader />,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
-        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
-      }}
-    >
-      <Tabs.Screen
-        name="news/index"
-        options={{
-          title: 'News',
-          tabBarIcon: ({ color, size }) => <Ionicons name="newspaper-outline" size={size} color={color} />,
+    <View style={{ flex: 1 }}>
+      <Tabs
+        initialRouteName="news/index"
+        screenOptions={{
+          header: () => <AppHeader />,
+          tabBarActiveTintColor: colors.primary,
+          tabBarInactiveTintColor: colors.textMuted,
+          tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
         }}
-      />
-      <Tabs.Screen
-        name="projects/index"
-        options={{
-          title: 'Projects',
-          tabBarIcon: ({ color, size }) => <Ionicons name="folder-outline" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="help"
-        options={{
-          title: 'Help',
-          tabBarIcon: ({ color, size }) => <Ionicons name="hand-left-outline" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="club-account"
-        options={{
-          title: 'Club',
-          tabBarIcon: ({ color, size }) => <Ionicons name="shield-outline" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen name="members/index" options={{ href: null }} />
-      <Tabs.Screen name="members/add" options={{ href: null }} />
-      <Tabs.Screen name="members/[id]" options={{ href: null }} />
-      <Tabs.Screen name="projects/create" options={{ href: null }} />
-      <Tabs.Screen name="projects/[id]" options={{ href: null }} />
-      <Tabs.Screen name="news/create" options={{ href: null }} />
-      <Tabs.Screen name="profile" options={{ href: null }} />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="news/index"
+          options={{
+            title: 'News',
+            tabBarIcon: ({ color, size }) => <Ionicons name="newspaper-outline" size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="projects/index"
+          options={{
+            title: 'Projects',
+            tabBarIcon: ({ color, size }) => <Ionicons name="folder-outline" size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="help"
+          options={{
+            title: 'Help',
+            tabBarIcon: ({ color, size }) => <Ionicons name="hand-left-outline" size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="club-account"
+          options={{
+            title: 'Club',
+            tabBarIcon: ({ color, size }) => <Ionicons name="shield-outline" size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen name="members/index" options={{ href: null }} />
+        <Tabs.Screen name="members/add" options={{ href: null }} />
+        <Tabs.Screen name="members/[id]" options={{ href: null }} />
+        <Tabs.Screen name="projects/create" options={{ href: null }} />
+        <Tabs.Screen name="projects/[id]" options={{ href: null }} />
+        <Tabs.Screen name="news/create" options={{ href: null }} />
+        <Tabs.Screen name="profile" options={{ href: null }} />
+      </Tabs>
+      <ChatFAB />
+    </View>
   );
 }
