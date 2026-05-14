@@ -323,6 +323,29 @@ export default function ProfileScreen() {
           <Ionicons name="log-out-outline" size={20} color={colors.error} />
           <Text style={{ color: colors.error, fontWeight: '700', fontSize: 15 }}>Sign Out</Text>
         </TouchableOpacity>
+
+        {/* Footer */}
+        <View style={{
+          alignItems: 'center', marginTop: 32,
+          // borderTopWidth: 1, borderColor: colors.border,
+          // paddingTop: 24, gap: 14,
+        }}>
+          <View style={{
+            borderWidth: 1, borderColor: colors.border,
+            borderRadius: radius.lg, padding: 12,
+            width: '100%', alignItems: 'center',
+            backgroundColor: colors.card,
+          }}>
+            <Image
+              source={require('../assets/images/LEO LOGO SET NEW 25_26 (1).png')}
+              style={{ width: '100%', height: 56 }}
+              resizeMode="contain"
+            />
+          </View>
+          <Text style={{ fontSize: 11, color: colors.textMuted, fontWeight: '500', letterSpacing: 0.5 }}>
+            Developed by Leo Club of University Moratuwa
+          </Text>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
